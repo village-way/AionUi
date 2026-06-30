@@ -33,15 +33,15 @@ The current local signing source is:
 
 Use the Developer ID Application certificate for the Electron `.app`, `.dmg`, and updater `.zip` artifacts. The Developer ID Installer certificate at `certs/installer.p12` is only needed for `.pkg` installers and is not used by the current AionUi release workflow.
 
-| Secret | Value |
-| --- | --- |
-| `BUILD_CERTIFICATE_BASE64` | Base64 of `/Users/devine/ai/vscodium/certs/application.p12` |
-| `P12_PASSWORD` | The export password for `application.p12` |
-| `KEYCHAIN_PASSWORD` | A temporary CI keychain password, for example `temp-keychain-password` |
-| `APPLE_ID` | `wandepen@163.com` |
-| `APPLE_ID_PASSWORD` | Apple app-specific password used by `notarytool` |
-| `TEAM_ID` | `EDCUTHX9T2` |
-| `IDENTITY` | `Developer ID Application: China MobileSuzhouSoftware Technology Co.,Ltd (EDCUTHX9T2)` |
+| Secret                     | Value                                                                                  |
+| -------------------------- | -------------------------------------------------------------------------------------- |
+| `BUILD_CERTIFICATE_BASE64` | Base64 of `/Users/devine/ai/vscodium/certs/application.p12`                            |
+| `P12_PASSWORD`             | The export password for `application.p12`                                              |
+| `KEYCHAIN_PASSWORD`        | A temporary CI keychain password, for example `temp-keychain-password`                 |
+| `APPLE_ID`                 | `wandepen@163.com`                                                                     |
+| `APPLE_ID_PASSWORD`        | Apple app-specific password used by `notarytool`                                       |
+| `TEAM_ID`                  | `EDCUTHX9T2`                                                                           |
+| `IDENTITY`                 | `Developer ID Application: China MobileSuzhouSoftware Technology Co.,Ltd (EDCUTHX9T2)` |
 
 Current certificate fingerprint:
 
@@ -54,8 +54,8 @@ The workflow sets `REQUIRE_MAC_SIGNING=true` and `REQUIRE_MAC_NOTARIZATION=true`
 
 ### GitHub Release Token
 
-| Secret | Value |
-| --- | --- |
+| Secret     | Value                                                            |
+| ---------- | ---------------------------------------------------------------- |
 | `GH_TOKEN` | A PAT for `village-way/AionUi` with `repo` and `workflow` scopes |
 
 This token is used by existing tag and release jobs. The built-in `GITHUB_TOKEN` is not enough for every workflow/tag update case because it cannot be granted the `workflow` scope.
@@ -64,21 +64,21 @@ This token is used by existing tag and release jobs. The built-in `GITHUB_TOKEN`
 
 The desktop build validates Sentry upload configuration on `linux-x64`.
 
-| Secret | Value |
-| --- | --- |
-| `SENTRY_AUTH_TOKEN` | Sentry auth token |
-| `SENTRY_ORG` | Sentry organization slug |
-| `SENTRY_PROJECT` | Sentry project slug |
-| `SENTRY_DSN` | Optional runtime DSN injected into the desktop build |
+| Secret              | Value                                                |
+| ------------------- | ---------------------------------------------------- |
+| `SENTRY_AUTH_TOKEN` | Sentry auth token                                    |
+| `SENTRY_ORG`        | Sentry organization slug                             |
+| `SENTRY_PROJECT`    | Sentry project slug                                  |
+| `SENTRY_DSN`        | Optional runtime DSN injected into the desktop build |
 
 ### Optional S3 Distribution
 
 Only required if `release-distribute.yml` should mirror published release assets to S3.
 
-| Secret | Value |
-| --- | --- |
-| `AWS_REGION` | AWS region |
-| `AWS_ROLE_ARN` | OIDC role ARN |
+| Secret          | Value                |
+| --------------- | -------------------- |
+| `AWS_REGION`    | AWS region           |
+| `AWS_ROLE_ARN`  | OIDC role ARN        |
 | `AWS_S3_BUCKET` | Release asset bucket |
 
 ## Configure Secrets from This Machine
