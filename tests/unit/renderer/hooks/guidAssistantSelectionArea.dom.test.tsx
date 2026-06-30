@@ -89,6 +89,28 @@ describe('AssistantSelectionArea', () => {
     expect(onSelectAssistant).toHaveBeenCalledWith('builtin-writer');
   });
 
+  it('renders the assistant picker as a compact dropdown when requested', async () => {
+    const onSelectAssistant = vi.fn();
+
+    render(
+      <AssistantSelectionArea
+        selectedAssistantId='bare-aionrs'
+        assistants={manyAssistants()}
+        localeKey='en-US'
+        onSelectAssistant={onSelectAssistant}
+        variant='dropdown'
+      />
+    );
+
+    expect(screen.getByTestId('assistant-dropdown-trigger')).toHaveTextContent('Aion CLI');
+    expect(screen.queryByTestId('preset-pill-bare-aionrs')).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByTestId('assistant-dropdown-trigger'));
+    fireEvent.click(await screen.findByTestId('assistant-dropdown-option-user-review'));
+
+    expect(onSelectAssistant).toHaveBeenCalledWith('user-review');
+  });
+
   it('orders assistant pills by sort_order before applying overflow', () => {
     render(
       <AssistantSelectionArea

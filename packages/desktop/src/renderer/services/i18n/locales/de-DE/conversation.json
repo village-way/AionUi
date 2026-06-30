@@ -66,12 +66,12 @@
     "yesterday": "Gestern",
     "recent7Days": "Letzte 7 Tage",
     "earlier": "Früher",
-    "projectsSection": "Projekte",
-    "conversationsSection": "Unterhaltungen",
+    "projectsSection": "Arbeitsbereiche",
+    "conversationsSection": "Chats",
     "removeProjectTitle": "Projekt entfernen",
     "removeProject": "Projekt entfernen",
     "removeProjectConfirm": "Projekt \"{{name}}\" entfernen? Die {{count}} zugehörige(n) Unterhaltung(en) werden ebenfalls entfernt.",
-    "newConversationInProject": "Neuer Chat in diesem Projekt"
+    "newConversationInProject": "Neuer Chat in diesem Arbeitsbereich"
   },
   "historySearch": {
     "tooltip": "Nachrichten durchsuchen",

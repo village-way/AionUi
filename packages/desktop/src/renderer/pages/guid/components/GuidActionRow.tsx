@@ -25,6 +25,7 @@ type GuidActionRowProps = {
 
   // Model selector node (rendered by parent)
   modelSelectorNode: React.ReactNode;
+  assistantSelectorNode?: React.ReactNode;
 
   // Agent mode
   modeBackend?: string;
@@ -52,6 +53,7 @@ const GuidActionRow: React.FC<GuidActionRowProps> = ({
   files,
   onFilesUploaded,
   modelSelectorNode,
+  assistantSelectorNode,
   modeBackend,
   selectedMode,
   dynamicModes = [],
@@ -271,6 +273,7 @@ const GuidActionRow: React.FC<GuidActionRowProps> = ({
             />
           )}
         </div>
+        {assistantSelectorNode ? <div className={styles.actionEntry}>{assistantSelectorNode}</div> : null}
       </div>
       <div className={styles.actionSubmit}>
         {configOptionCount > 0 && (

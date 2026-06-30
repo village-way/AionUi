@@ -191,7 +191,7 @@ vi.mock('@/renderer/pages/guid/components/AssistantSelectionArea', () => ({
 vi.mock('@/renderer/pages/guid/components/GuidActionRow', () => ({
   default: (props: Record<string, unknown>) => {
     capturedGuidActionRowProps.push(props);
-    return <div data-testid='guid-action-row' />;
+    return <div data-testid='guid-action-row'>{props.assistantSelectorNode as React.ReactNode}</div>;
   },
 }));
 
@@ -335,7 +335,9 @@ describe('GuidPage', () => {
     expect(capturedAssistantSelectionAreaProps.length).toBeGreaterThan(0);
     expect(latestAssistantSelectionAreaProps).not.toHaveProperty('is_presetAgent');
     expect(latestAssistantSelectionAreaProps).not.toHaveProperty('selectedAgentInfo');
+    expect(latestAssistantSelectionAreaProps).toMatchObject({ variant: 'dropdown' });
     expect(capturedGuidActionRowProps.length).toBeGreaterThan(0);
+    expect(latestGuidActionRowProps).toHaveProperty('assistantSelectorNode');
     expect(latestGuidActionRowProps).not.toHaveProperty('hidePresetTag');
     expect(latestGuidActionRowProps).not.toHaveProperty('is_presetAgent');
     expect(latestGuidActionRowProps).not.toHaveProperty('selectedAgent');
