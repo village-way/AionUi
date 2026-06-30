@@ -173,16 +173,14 @@ html {
 }
 
 /* 侧边栏图标 */
-.layout-sider-header svg {
-  color: rgba(255, 255, 255, 0.9);
+.layout-sider-header .brand-mark {
   transition:
-    color 0.3s ease,
+    box-shadow 0.3s ease,
     transform 0.2s ease;
 }
 
-.layout-sider-header svg:hover {
-  color: var(--hk-text-inverse);
-  transform: scale(1.1);
+.layout-sider-header .brand-mark:hover {
+  transform: scale(1.05);
 }
 
 /* ==================== 输入框 Input ==================== */

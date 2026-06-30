@@ -137,18 +137,19 @@ html {
   box-shadow: 0 2px 8px rgba(30, 58, 138, 0.3);
 }
 
-.layout-sider svg,
-.layout-sider-header svg {
+.layout-sider svg {
   fill: none;
   stroke: rgba(255, 255, 255, 0.9);
   color: rgba(255, 255, 255, 0.9);
   transition: stroke var(--transition-duration) var(--transition-timing);
 }
 
-.layout-sider-header svg:hover {
-  fill: none;
-  stroke: white;
-  color: white;
+.layout-sider-header .brand-mark {
+  transition: transform var(--transition-duration) var(--transition-timing);
+}
+
+.layout-sider-header .brand-mark:hover {
+  transform: scale(1.05);
 }
 
 /* ========== 图标样式 - 简化选择器 ========== */

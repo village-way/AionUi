@@ -176,6 +176,7 @@ export type I18nKey =
   | 'common.add'
   | 'common.added'
   | 'common.agentMode'
+  | 'common.appBrand'
   | 'common.back'
   | 'common.backendStartup.dataMigration.description'
   | 'common.backendStartup.dataMigration.diagnosticsReportFailed'

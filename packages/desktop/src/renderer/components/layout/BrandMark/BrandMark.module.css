@@ -1,0 +1,87 @@
+.root {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-width: 0;
+}
+
+.mark {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--color-border-2);
+  border-radius: 12px;
+  background: var(--bg-1);
+  box-shadow: 0 10px 22px color-mix(in srgb, var(--color-text-1) 10%, transparent);
+  transition:
+    box-shadow 0.18s ease,
+    transform 0.18s ease;
+}
+
+.mark--sm {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+}
+
+.mark--md {
+  width: 40px;
+  height: 40px;
+}
+
+.mark--lg {
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  box-shadow: 0 12px 28px color-mix(in srgb, var(--color-text-1) 12%, transparent);
+}
+
+.mark--clickable {
+  cursor: pointer;
+}
+
+.mark--clickable:hover {
+  box-shadow: 0 12px 26px color-mix(in srgb, var(--color-text-1) 14%, transparent);
+  transform: translateY(-1px);
+}
+
+.mark--clickable:active {
+  transform: translateY(0);
+}
+
+.logo {
+  display: block;
+  width: 28px;
+  height: 26px;
+}
+
+.mark--sm .logo {
+  width: 22px;
+  height: 20px;
+}
+
+.mark--lg .logo {
+  width: 44px;
+  height: 41px;
+}
+
+.title {
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--color-text-1);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.title--interactive {
+  cursor: pointer;
+}
+
+.title--login {
+  font-size: 24px;
+  font-weight: 700;
+  text-align: center;
+  margin: 0;
+}
