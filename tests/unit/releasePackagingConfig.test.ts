@@ -21,6 +21,18 @@ function yamlBlock(content: string, key: string): string {
 }
 
 describe('release packaging configuration', () => {
+  it('uses Zhanlu Work package identity and protocol metadata', () => {
+    const config = readProjectFile('packages/desktop/electron-builder.yml');
+
+    expect(config).toContain('appId: Ecloud.ZhanluWork');
+    expect(config).toContain('productName: Zhanlu Work');
+    expect(config).toContain('executableName: ZhanluWork');
+    expect(config).toContain('      - zhanlu-work');
+    expect(config).toContain('      Name: Zhanlu Work');
+    expect(config).toContain('      Icon: zhanlu-work');
+    expect(config).toContain('      MimeType: x-scheme-handler/zhanlu-work;');
+  });
+
   it('keeps mac zip artifacts enabled', () => {
     const config = readProjectFile('packages/desktop/electron-builder.yml');
     const macBlock = yamlBlock(config, 'mac');
@@ -40,8 +52,8 @@ describe('release packaging configuration', () => {
   it('uploads mac zip artifacts without a stale Windows zip glob', () => {
     const workflow = readProjectFile('.github/workflows/_build-reusable.yml');
 
-    expect(workflow).toContain('out/AionUi-*-mac-*.zip');
-    expect(workflow).not.toContain('out/AionUi-*-win32-*.zip');
+    expect(workflow).toContain('out/ZhanluWork-*-mac-*.zip');
+    expect(workflow).not.toContain('out/ZhanluWork-*-win32-*.zip');
   });
 
   it('retries mac prepackaged builds with both dmg and zip targets', () => {
@@ -64,7 +76,7 @@ describe('release packaging configuration', () => {
       });
       expect(createResult.status).toBe(0);
 
-      rmSync(resolve(artifactsDir, 'macos-build-arm64', 'AionUi-1.0.0-mac-arm64.zip'), { force: true });
+      rmSync(resolve(artifactsDir, 'macos-build-arm64', 'ZhanluWork-1.0.0-mac-arm64.zip'), { force: true });
 
       const prepareResult = spawnSync('bash', ['scripts/prepare-release-assets.sh', artifactsDir, outputDir], {
         cwd: projectRoot,

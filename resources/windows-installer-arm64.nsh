@@ -5,8 +5,8 @@
 
 !ifndef AIONUI_APP_PROCESS_CHECK_DEFINED
 !define AIONUI_APP_PROCESS_CHECK_DEFINED
-!define AIONUI_APP_EXECUTABLE_FILENAME "AionUi.exe"
-!define AIONUI_PROCESS_CHECK_LOG "aionui-installer-process-check.log"
+!define AIONUI_APP_EXECUTABLE_FILENAME "ZhanluWork.exe"
+!define AIONUI_PROCESS_CHECK_LOG "zhanlu-work-installer-process-check.log"
 
 !ifndef BUILD_UNINSTALLER
   Var /GLOBAL AionUiUninstallHadErrors
@@ -37,15 +37,15 @@
 
   ${If} ${FileExists} "$AionUiInstalledUninstaller"
     InitPluginsDir
-    StrCpy $AionUiBundledUninstaller "$PLUGINSDIR\AionUi-fixed-uninstaller.exe"
+    StrCpy $AionUiBundledUninstaller "$PLUGINSDIR\ZhanluWork-fixed-uninstaller.exe"
     SetOverwrite on
-    File "/oname=$PLUGINSDIR\AionUi-fixed-uninstaller.exe" "${UNINSTALLER_OUT_FILE}"
+    File "/oname=$PLUGINSDIR\ZhanluWork-fixed-uninstaller.exe" "${UNINSTALLER_OUT_FILE}"
 
     ClearErrors
     CopyFiles /SILENT "$AionUiBundledUninstaller" "$AionUiInstalledUninstaller"
     ${If} ${Errors}
       !insertmacro AIONUI_LOG_UNINSTALLER_REPAIR "copy-failed"
-      MessageBox MB_OK|MB_ICONEXCLAMATION "AionUi cannot update because the existing uninstaller is locked.$\r$\n$\r$\nPlease close AionUi completely and try again. If it still fails, restart Windows and run this installer again.$\r$\n$\r$\nIf the problem continues, uninstall the old AionUi from Windows Settings, then run this installer again."
+      MessageBox MB_OK|MB_ICONEXCLAMATION "Zhanlu Work cannot update because the existing uninstaller is locked.$\r$\n$\r$\nPlease close Zhanlu Work completely and try again. If it still fails, restart Windows and run this installer again.$\r$\n$\r$\nIf the problem continues, uninstall the old Zhanlu Work from Windows Settings, then run this installer again."
       SetErrorLevel 2
       Quit
     ${Else}
@@ -212,10 +212,10 @@
   ${IfNot} ${FileExists} "${_PATH}"
     !insertmacro AIONUI_LOG_EVENT "verify-required-file missing label=${_LABEL} path=${_PATH}"
     MessageBox MB_OK|MB_ICONSTOP \
-      "AionUi installation is incomplete.$\n$\n\
+      "Zhanlu Work installation is incomplete.$\n$\n\
       Missing required file: ${_LABEL}$\n\
       Path: ${_PATH}$\n$\n\
-      Please reinstall AionUi or download a newer installer." \
+      Please reinstall Zhanlu Work or download a newer installer." \
       /SD IDOK
     SetErrorLevel 3
     Quit
@@ -226,7 +226,7 @@
 
 !macro AIONUI_VERIFY_ARM64_APP_FILES
   !insertmacro AIONUI_LOG_EVENT "verify-install start instDir=$INSTDIR"
-  !insertmacro AIONUI_VERIFY_REQUIRED_FILE "$INSTDIR\AionUi.exe" "AionUi.exe"
+  !insertmacro AIONUI_VERIFY_REQUIRED_FILE "$INSTDIR\ZhanluWork.exe" "ZhanluWork.exe"
   !insertmacro AIONUI_VERIFY_REQUIRED_FILE "$INSTDIR\ffmpeg.dll" "ffmpeg.dll"
   !insertmacro AIONUI_VERIFY_REQUIRED_FILE "$INSTDIR\libEGL.dll" "libEGL.dll"
   !insertmacro AIONUI_VERIFY_REQUIRED_FILE "$INSTDIR\libGLESv2.dll" "libGLESv2.dll"
@@ -342,9 +342,9 @@ Function .onVerifyInstDir
     ; System is not ARM64
     MessageBox MB_OK|MB_ICONSTOP \
       "Installation package architecture mismatch$\n$\n\
-      This AionUi installer is designed for ARM64 architecture.$\n$\n\
+      This Zhanlu Work installer is designed for ARM64 architecture.$\n$\n\
       Your system does not support ARM64. Please download the appropriate version for your architecture.$\n$\n\
-      Download: https://github.com/iOfficeAI/AionUi/releases"
+      Download: https://github.com/Ecloud/ZhanluWork/releases"
     Quit
   ${EndIf}
 FunctionEnd

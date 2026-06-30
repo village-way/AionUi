@@ -68,7 +68,7 @@ const reduceNotificationState = (
   event: UpdateNotificationEvent
 ): UpdateNotificationState => updateNotificationReducer(current, event).state;
 
-const RELEASES_PAGE_URL = 'https://github.com/iOfficeAI/AionUi/releases';
+const RELEASES_PAGE_URL = 'https://github.com/Ecloud/ZhanluWork/releases';
 
 export const useUpdateNotificationController = () => {
   const { t } = useTranslation();

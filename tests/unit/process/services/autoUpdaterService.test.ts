@@ -8,6 +8,8 @@ import path from 'path';
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+const UPDATE_BASE_URL = 'https://updates.zhanlu.work/releases';
+
 const autoUpdaterMock = vi.hoisted(() => ({
   logger: null as unknown,
   autoDownload: true,
@@ -65,6 +67,9 @@ describe('AutoUpdaterService', () => {
     autoUpdaterMock.channel = undefined;
     delete (autoUpdaterMock as { updateInfoAndProvider?: unknown }).updateInfoAndProvider;
     appMock.isPackaged = false;
+    delete process.env.ZHANLU_WORK_UPDATE_BASE_URL;
+    delete process.env.ZHANLU_WORK_FORCE_DEV_AUTO_UPDATE;
+    delete process.env.ZHANLU_WORK_DEBUG_AUTO_UPDATE_CURRENT_VERSION;
     delete process.env.AIONUI_FORCE_DEV_AUTO_UPDATE;
     delete process.env.AIONUI_DEBUG_AUTO_UPDATE_CURRENT_VERSION;
     Object.defineProperty(autoUpdaterMock, 'currentVersion', {
@@ -78,8 +83,8 @@ describe('AutoUpdaterService', () => {
       isUpdateAvailable: true,
       updateInfo: {
         version: '2.1.14',
-        files: [{ url: 'AionUi-2.1.14-mac-arm64.dmg', sha512: 'sha512-value' }],
-        path: 'AionUi-2.1.14-mac-arm64.dmg',
+        files: [{ url: 'ZhanluWork-2.1.14-mac-arm64.dmg', sha512: 'sha512-value' }],
+        path: 'ZhanluWork-2.1.14-mac-arm64.dmg',
         sha512: 'sha512-value',
         releaseDate: '2026-06-08T00:00:00.000Z',
       },
@@ -96,7 +101,9 @@ describe('AutoUpdaterService', () => {
     expect(autoUpdaterMock.checkForUpdates).not.toHaveBeenCalled();
   });
 
-  it('configures electron-updater to read stable metadata from the CDN', async () => {
+  it('configures electron-updater to read stable metadata from the configured feed', async () => {
+    process.env.ZHANLU_WORK_UPDATE_BASE_URL = UPDATE_BASE_URL;
+
     const { autoUpdaterService } = await import('@/process/services/autoUpdaterService');
     const { CdnGenericProvider } = await import('@/process/services/cdnGenericProvider');
 
@@ -104,13 +111,19 @@ describe('AutoUpdaterService', () => {
 
     expect(autoUpdaterMock.setFeedURL).toHaveBeenCalledWith({
       provider: 'custom',
-      url: 'https://static.aionui.com/releases',
+      url: UPDATE_BASE_URL,
       updateProvider: CdnGenericProvider,
     });
   });
 
+  it('does not configure electron-updater when no Zhanlu Work feed is configured', async () => {
+    await import('@/process/services/autoUpdaterService');
+
+    expect(autoUpdaterMock.setFeedURL).not.toHaveBeenCalled();
+  });
+
   it('enables forced updater checks in unpacked dev builds when requested', async () => {
-    process.env.AIONUI_FORCE_DEV_AUTO_UPDATE = '1';
+    process.env.ZHANLU_WORK_FORCE_DEV_AUTO_UPDATE = '1';
 
     await import('@/process/services/autoUpdaterService');
 
@@ -118,8 +131,8 @@ describe('AutoUpdaterService', () => {
   });
 
   it('overrides the updater current version only for forced unpacked dev checks', async () => {
-    process.env.AIONUI_FORCE_DEV_AUTO_UPDATE = '1';
-    process.env.AIONUI_DEBUG_AUTO_UPDATE_CURRENT_VERSION = '2.1.12';
+    process.env.ZHANLU_WORK_FORCE_DEV_AUTO_UPDATE = '1';
+    process.env.ZHANLU_WORK_DEBUG_AUTO_UPDATE_CURRENT_VERSION = '2.1.12';
 
     await import('@/process/services/autoUpdaterService');
 
@@ -128,8 +141,8 @@ describe('AutoUpdaterService', () => {
 
   it('ignores forced updater debug env in packaged builds', async () => {
     appMock.isPackaged = true;
-    process.env.AIONUI_FORCE_DEV_AUTO_UPDATE = '1';
-    process.env.AIONUI_DEBUG_AUTO_UPDATE_CURRENT_VERSION = '2.1.12';
+    process.env.ZHANLU_WORK_FORCE_DEV_AUTO_UPDATE = '1';
+    process.env.ZHANLU_WORK_DEBUG_AUTO_UPDATE_CURRENT_VERSION = '2.1.12';
 
     await import('@/process/services/autoUpdaterService');
 
@@ -242,18 +255,19 @@ describe('AutoUpdaterService', () => {
   });
 
   it('restores a completed cached auto-update when the downloaded package validates', async () => {
+    process.env.ZHANLU_WORK_UPDATE_BASE_URL = UPDATE_BASE_URL;
     const updateInfo = {
       version: '2.1.14',
-      files: [{ url: 'AionUi-2.1.14-mac.zip', sha512: 'sha512-value' }],
-      path: 'AionUi-2.1.14-mac.zip',
+      files: [{ url: 'ZhanluWork-2.1.14-mac.zip', sha512: 'sha512-value' }],
+      path: 'ZhanluWork-2.1.14-mac.zip',
       sha512: 'sha512-value',
       releaseDate: '2026-06-08T00:00:00.000Z',
     };
     const fileInfo = {
-      url: new URL('https://static.aionui.com/releases/2.1.14/AionUi-2.1.14-mac.zip'),
-      info: { url: 'AionUi-2.1.14-mac.zip', sha512: 'sha512-value' },
+      url: new URL('https://updates.zhanlu.work/releases/2.1.14/ZhanluWork-2.1.14-mac.zip'),
+      info: { url: 'ZhanluWork-2.1.14-mac.zip', sha512: 'sha512-value' },
     };
-    const cachedUpdatePath = path.join('/cache/pending', 'AionUi-2.1.14-mac.zip');
+    const cachedUpdatePath = path.join('/cache/pending', 'ZhanluWork-2.1.14-mac.zip');
     const validateDownloadedPath = vi.fn().mockResolvedValue(cachedUpdatePath);
 
     autoUpdaterMock.checkForUpdates.mockImplementation(async () => {
@@ -286,16 +300,17 @@ describe('AutoUpdaterService', () => {
   });
 
   it('does not restore a cached auto-update when the downloaded package is missing or invalid', async () => {
+    process.env.ZHANLU_WORK_UPDATE_BASE_URL = UPDATE_BASE_URL;
     const updateInfo = {
       version: '2.1.14',
-      files: [{ url: 'AionUi-2.1.14-mac.zip', sha512: 'sha512-value' }],
-      path: 'AionUi-2.1.14-mac.zip',
+      files: [{ url: 'ZhanluWork-2.1.14-mac.zip', sha512: 'sha512-value' }],
+      path: 'ZhanluWork-2.1.14-mac.zip',
       sha512: 'sha512-value',
       releaseDate: '2026-06-08T00:00:00.000Z',
     };
     const fileInfo = {
-      url: new URL('https://static.aionui.com/releases/2.1.14/AionUi-2.1.14-mac.zip'),
-      info: { url: 'AionUi-2.1.14-mac.zip', sha512: 'sha512-value' },
+      url: new URL('https://updates.zhanlu.work/releases/2.1.14/ZhanluWork-2.1.14-mac.zip'),
+      info: { url: 'ZhanluWork-2.1.14-mac.zip', sha512: 'sha512-value' },
     };
     const validateDownloadedPath = vi.fn().mockResolvedValue(null);
 

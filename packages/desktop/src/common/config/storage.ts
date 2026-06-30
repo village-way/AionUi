@@ -549,7 +549,7 @@ export interface IMcpServer {
   created_at: number;
   updated_at: number;
   original_json: string; // 存储原始JSON配置，用于编辑时的准确显示
-  /** Built-in MCP server managed by AionUi (hide edit/delete in UI) */
+  /** Built-in MCP server managed by Zhanlu Work (hide edit/delete in UI) */
   builtin?: boolean;
 }
 
@@ -566,8 +566,12 @@ export interface IConversationMcpStatus {
 
 /** Stable ID for the built-in image generation MCP server */
 export const BUILTIN_IMAGE_GEN_ID = 'builtin-image-gen';
-export const BUILTIN_IMAGE_GEN_NAME = 'aionui-image-generation';
-export const BUILTIN_IMAGE_GEN_LEGACY_NAMES = ['AionUi Image Generation', BUILTIN_IMAGE_GEN_ID] as const;
+export const BUILTIN_IMAGE_GEN_NAME = 'zhanlu-work-image-generation';
+export const BUILTIN_IMAGE_GEN_LEGACY_NAMES = [
+  'aionui-image-generation',
+  'AionUi Image Generation',
+  BUILTIN_IMAGE_GEN_ID,
+] as const;
 
 export interface IMcpTool {
   name: string;

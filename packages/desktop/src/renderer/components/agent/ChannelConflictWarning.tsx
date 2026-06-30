@@ -7,6 +7,7 @@
 import { Alert, Button, Link, Space, Typography } from '@arco-design/web-react';
 import { IconExclamationCircle } from '@arco-design/web-react/icon';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 const { Paragraph, Text } = Typography;
 
@@ -18,7 +19,7 @@ interface ChannelConflictWarningProps {
 }
 
 /**
- * Warning component when OpenClaw channel conflicts with AionUi Channels
+ * Warning component when OpenClaw channel conflicts with app channels.
  */
 export const ChannelConflictWarning: React.FC<ChannelConflictWarningProps> = ({
   platform,
@@ -26,6 +27,8 @@ export const ChannelConflictWarning: React.FC<ChannelConflictWarningProps> = ({
   onDisableOpenClaw,
   onIgnore,
 }) => {
+  const { t } = useTranslation();
+  const appBrand = t('common.appBrand');
   const platformName = platform === 'lark' ? 'Lark/Feishu' : 'Telegram';
   const channelKey = platform === 'lark' ? 'feishu' : 'telegram';
 
@@ -37,14 +40,16 @@ export const ChannelConflictWarning: React.FC<ChannelConflictWarningProps> = ({
       content={
         <Space direction='vertical' size='medium' style={{ width: '100%' }}>
           <Paragraph>
-            <Text bold>OpenClaw is handling {platformName} messages, not AionUi.</Text>
+            <Text bold>
+              OpenClaw is handling {platformName} messages, not {appBrand}.
+            </Text>
           </Paragraph>
 
           <Paragraph>
             Your {platformName} bot credentials are also configured in OpenClaw. This means:
             <ul>
               <li>
-                <Text type='error'>✗ Switching agents in AionUi will have no effect</Text>
+                <Text type='error'>✗ Switching agents in {appBrand} will have no effect</Text>
               </li>
               <li>
                 <Text type='error'>✗ Messages are processed by OpenClaw's agent</Text>
@@ -56,7 +61,7 @@ export const ChannelConflictWarning: React.FC<ChannelConflictWarningProps> = ({
           </Paragraph>
 
           <Paragraph>
-            <Text bold>To use AionUi Channels and switch agents:</Text>
+            <Text bold>To use {appBrand} Channels and switch agents:</Text>
           </Paragraph>
 
           <Paragraph>
@@ -66,19 +71,19 @@ export const ChannelConflictWarning: React.FC<ChannelConflictWarningProps> = ({
             <br />
             Set: <Text code>{`channels.${channelKey}.enabled = false`}</Text>
             <br />
-            Then restart OpenClaw and AionUi.
+            Then restart OpenClaw and {appBrand}.
           </Paragraph>
 
           <Paragraph>
             <Text type='secondary'>Option 2: Use a different bot</Text>
             <br />
-            Create a new {platformName} bot with different credentials for AionUi.
+            Create a new {platformName} bot with different credentials for {appBrand}.
           </Paragraph>
 
           <Paragraph>
             <Text type='secondary'>Option 3: Keep using OpenClaw</Text>
             <br />
-            Disable {platformName} in AionUi Channels and continue using OpenClaw's integration.
+            Disable {platformName} in {appBrand} Channels and continue using OpenClaw's integration.
           </Paragraph>
 
           <Space>

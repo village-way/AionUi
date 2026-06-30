@@ -76,26 +76,26 @@
   "backendStartup": {
     "incompatibleRuntime": {
       "title": "Bu sistem paketlenmiş backend tarafından desteklenmiyor",
-      "description": "AionUi açıldı, ancak yerel AionCore backend bu Linux sürümünde çalışamaz. Desteklenen bir Linux dağıtımına yükseltip AionUi'yi yeniden başlatın.",
+      "description": "Zhanlu Work açıldı, ancak yerel AionCore backend bu Linux sürümünde çalışamaz. Desteklenen bir Linux dağıtımına yükseltip Zhanlu Work'yi yeniden başlatın.",
       "requiredVersions": "Gerekli çalışma zamanı sembolleri: {{versions}}"
     },
     "incompleteInstallation": {
-      "title": "AionUi kurulumu eksik",
-      "description": "Bu kurulumda gerekli yerel kaynaklar eksik, bu yüzden AionCore başlatılamıyor. Lütfen en son AionUi sürümünü indirip yeniden kurun. Yeniden kurulumdan sonra sorun tekrarlarsa güvenlik veya antivirüs yazılımının AionCore'u karantinaya alıp almadığını kontrol edin.",
+      "title": "Zhanlu Work kurulumu eksik",
+      "description": "Bu kurulumda gerekli yerel kaynaklar eksik, bu yüzden AionCore başlatılamıyor. Lütfen en son Zhanlu Work sürümünü indirip yeniden kurun. Yeniden kurulumdan sonra sorun tekrarlarsa güvenlik veya antivirüs yazılımının AionCore'u karantinaya alıp almadığını kontrol edin.",
       "downloadLatest": "Son sürümü indir",
       "sendDiagnostics": "Tanı raporu gönder",
       "diagnosticsSent": "Tanı raporu gönderildi",
       "diagnosticsReportSuccess": "Tanı raporu gönderildi",
       "diagnosticsReportFailed": "Tanı raporu gönderilemedi",
-      "runtimeComponentDescription": "Bu kurulumda gerekli yerleşik çalışma zamanı bileşenleri eksik olduğu için {{resource}} başlatılamıyor. En son AionUi paketini yeniden yükleyin. Yeniden yükledikten sonra da devam ederse güvenlik veya antivirüs yazılımının AionUi bileşenlerini karantinaya alıp almadığını kontrol edin."
+      "runtimeComponentDescription": "Bu kurulumda gerekli yerleşik çalışma zamanı bileşenleri eksik olduğu için {{resource}} başlatılamıyor. En son Zhanlu Work paketini yeniden yükleyin. Yeniden yükledikten sonra da devam ederse güvenlik veya antivirüs yazılımının Zhanlu Work bileşenlerini karantinaya alıp almadığını kontrol edin."
     },
     "packageArchitectureMismatch": {
-      "title": "AionUi package architecture mismatch",
-      "description": "This AionUi package is for {{packageArch}}, but this Mac is {{deviceArch}}. You may have downloaded the wrong package. Please download and install the {{expectedArch}} package."
+      "title": "Zhanlu Work package architecture mismatch",
+      "description": "This Zhanlu Work package is for {{packageArch}}, but this Mac is {{deviceArch}}. You may have downloaded the wrong package. Please download and install the {{expectedArch}} package."
     },
     "dataMigration": {
       "title": "Local data migration failed",
-      "description": "AionUi opened, but AionCore stopped while initializing local data. Reinstalling AionUi may not fix this. Send a diagnostics report or contact support so the local database migration can be inspected.",
+      "description": "Zhanlu Work opened, but AionCore stopped while initializing local data. Reinstalling Zhanlu Work may not fix this. Send a diagnostics report or contact support so the local database migration can be inspected.",
       "sendDiagnostics": "Send diagnostics",
       "diagnosticsSent": "Diagnostics sent",
       "diagnosticsReportSuccess": "Diagnostics report sent",
@@ -103,7 +103,7 @@
     },
     "localDataRepair": {
       "title": "Local data repair failed",
-      "description": "AionUi opened, but AionCore stopped while repairing local agent cache data. Reinstalling AionUi may not fix this. Send a diagnostics report or contact support so the local database can be inspected.",
+      "description": "Zhanlu Work opened, but AionCore stopped while repairing local agent cache data. Reinstalling Zhanlu Work may not fix this. Send a diagnostics report or contact support so the local database can be inspected.",
       "sendDiagnostics": "Send diagnostics",
       "diagnosticsSent": "Diagnostics sent",
       "diagnosticsReportSuccess": "Diagnostics report sent",

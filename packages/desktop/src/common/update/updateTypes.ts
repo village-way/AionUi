@@ -35,7 +35,7 @@ export interface UpdateCheckResult {
 
 export interface UpdateCheckRequest {
   includePrerelease?: boolean;
-  /** Defaults to iOfficeAI/AionUi when omitted */
+  /** Optional owner/repo. When omitted, manual GitHub update checks are disabled. */
   repo?: string;
 }
 

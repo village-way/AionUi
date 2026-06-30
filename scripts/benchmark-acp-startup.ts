@@ -86,10 +86,13 @@ function agentPillByBackend(backend: string) {
 
 function getLogFilePath(): string {
   const today = new Date().toISOString().slice(0, 10);
-  // Dev mode uses "AionUi-Dev", production uses "AionUi"
-  const devPath = path.join(os.homedir(), 'Library', 'Logs', 'AionUi-Dev', `${today}.log`);
-  const prodPath = path.join(os.homedir(), 'Library', 'Logs', 'AionUi', `${today}.log`);
-  return fs.existsSync(devPath) ? devPath : prodPath;
+  const candidates = [
+    path.join(os.homedir(), 'Library', 'Logs', 'ZhanluWork-Dev', `${today}.log`),
+    path.join(os.homedir(), 'Library', 'Logs', 'Zhanlu Work', `${today}.log`),
+    path.join(os.homedir(), 'Library', 'Logs', 'AionUi-Dev', `${today}.log`),
+    path.join(os.homedir(), 'Library', 'Logs', 'AionUi', `${today}.log`),
+  ];
+  return candidates.find((p) => fs.existsSync(p)) ?? candidates[0];
 }
 
 function getLogFileSize(logPath: string): number {
@@ -202,10 +205,10 @@ async function launchApp(): Promise<ElectronApplication> {
     env: {
       ...process.env,
       ACP_PERF: '1',
-      AIONUI_DISABLE_AUTO_UPDATE: '1',
-      AIONUI_E2E_TEST: '1',
+      ZHANLU_WORK_DISABLE_AUTO_UPDATE: '1',
+      ZHANLU_WORK_E2E_TEST: '1',
       AIONUI_DISABLE_DEVTOOLS: '1',
-      AIONUI_CDP_PORT: '0',
+      ZHANLU_WORK_CDP_PORT: '0',
       NODE_ENV: 'development',
     },
     timeout: 60_000,

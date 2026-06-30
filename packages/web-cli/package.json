@@ -2,9 +2,9 @@
   "name": "@aionui/web-cli",
   "version": "1.9.26",
   "private": true,
-  "description": "AionUi WebUI CLI - standalone web runtime (no Electron)",
+  "description": "Zhanlu Work WebUI CLI - standalone web runtime (no Electron)",
   "bin": {
-    "aionui-web": "./bin/aionui-web.js"
+    "zhanlu-work-web": "./bin/zhanlu-work-web.js"
   },
   "type": "module",
   "exports": {

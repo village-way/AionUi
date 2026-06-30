@@ -40,7 +40,8 @@
     "downloadNoBody": "Download-Antwort enthielt keinen Body",
     "missingUrl": "Download-URL fehlt",
     "checkReturnedNull": "Update-Prüfung hat kein Ergebnis zurückgegeben. Verpackte App oder erzwungene Dev-Update-Konfiguration erforderlich.",
-    "missingDownloadId": "Download-ID fehlt"
+    "missingDownloadId": "Download-ID fehlt",
+    "updateSourceNotConfigured": "Zhanlu Work update source is not configured. Configure an update source before checking for updates."
   },
   "releaseNotesLoading": "Update-Details werden abgerufen...",
   "releaseNotesFailed": "Update-Details konnten nicht abgerufen werden.",

@@ -34,12 +34,21 @@ describe('shouldAutoOpenBrowser', () => {
       shouldAutoOpenBrowser({
         allowRemote: false,
         noOpenFlag: true,
-        env: { AIONUI_OPEN_BROWSER: 'true' },
+        env: { ZHANLU_WORK_OPEN_BROWSER: 'true' },
       })
     ).toBe(false);
   });
 
-  it('honors AIONUI_OPEN_BROWSER=false for local launches', () => {
+  it('honors ZHANLU_WORK_OPEN_BROWSER=false for local launches', () => {
+    expect(
+      shouldAutoOpenBrowser({
+        allowRemote: false,
+        env: { ZHANLU_WORK_OPEN_BROWSER: 'false' },
+      })
+    ).toBe(false);
+  });
+
+  it('keeps AIONUI_OPEN_BROWSER as a compatibility alias', () => {
     expect(
       shouldAutoOpenBrowser({
         allowRemote: false,

@@ -77,6 +77,12 @@ describe('AboutModalContent update ready state', () => {
     vi.unstubAllGlobals();
   });
 
+  it('renders the localized app brand', () => {
+    render(<AboutModalContent />);
+
+    expect(screen.getByRole('heading', { name: 'common.appBrand' })).toBeInTheDocument();
+  });
+
   it('replaces check update with ready-to-install when an update package is ready', async () => {
     render(<AboutModalContent />);
 

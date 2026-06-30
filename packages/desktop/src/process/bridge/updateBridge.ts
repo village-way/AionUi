@@ -57,19 +57,36 @@ interface AutoUpdateCheckParams {
   includePrerelease?: boolean;
 }
 
-const DEFAULT_REPO = 'iOfficeAI/AionUi';
-const DEFAULT_USER_AGENT = 'AionUi';
+const GITHUB_REPO_ENV = 'ZHANLU_WORK_GITHUB_REPO';
+const LEGACY_GITHUB_REPO_ENV = 'AIONUI_GITHUB_REPO';
+const RELEASE_CDN_BASE_URL_ENV = 'ZHANLU_WORK_RELEASE_CDN_BASE_URL';
+const DEFAULT_USER_AGENT = 'ZhanluWork';
 const ALLOWED_ASSET_EXTS = new Set(['.exe', '.msi', '.dmg', '.zip', '.deb', '.rpm']);
-const CDN_HOST = 'static.aionui.com';
-const CDN_BASE_URL = `https://${CDN_HOST}/releases`;
-const ALLOWED_DOWNLOAD_HOSTS = new Set<string>([
-  CDN_HOST,
+const GITHUB_DOWNLOAD_HOSTS = [
   'github.com',
   'objects.githubusercontent.com',
   'github-releases.githubusercontent.com',
   'release-assets.githubusercontent.com',
-]);
+] as const;
 const MAX_REDIRECTS = 8;
+
+const normalizeBaseUrl = (url: string): string => url.trim().replace(/\/+$/, '');
+
+const getReleaseCdnBaseUrl = (): string => normalizeBaseUrl(process.env[RELEASE_CDN_BASE_URL_ENV] || '');
+
+const getAllowedDownloadHosts = (): Set<string> => {
+  const hosts = new Set<string>(GITHUB_DOWNLOAD_HOSTS);
+  const releaseCdnBaseUrl = getReleaseCdnBaseUrl();
+  if (releaseCdnBaseUrl) {
+    try {
+      hosts.add(new URL(releaseCdnBaseUrl).hostname);
+    } catch {
+      // Invalid CDN env values are rejected when building asset URLs; they
+      // should not expand the download allowlist.
+    }
+  }
+  return hosts;
+};
 
 const isAllowedAssetName = (name: string) => {
   const ext = path.extname(name);
@@ -89,17 +106,22 @@ const normalizeTagToSemver = (tag: string): string | null => {
  * The CDN path follows the fixed convention `{base}/{version}/{original-filename}`,
  * matching electron-builder's artifactName output, so no name conversion is needed.
  */
-const rewriteAssetUrlToCDN = (assetName: string, version: string): string => {
-  return `${CDN_BASE_URL}/${version}/${assetName}`;
+const rewriteAssetUrlToCDN = (assetName: string, version: string): string | null => {
+  const releaseCdnBaseUrl = getReleaseCdnBaseUrl();
+  if (!releaseCdnBaseUrl) return null;
+  return `${releaseCdnBaseUrl}/${version}/${assetName}`;
 };
 
-const mapAsset = (asset: GitHubReleaseApiAsset, version: string): GitHubReleaseAsset => ({
-  name: asset.name,
-  url: rewriteAssetUrlToCDN(asset.name, version),
-  fallbackUrl: asset.browser_download_url,
-  size: asset.size,
-  contentType: asset.content_type,
-});
+const mapAsset = (asset: GitHubReleaseApiAsset, version: string): GitHubReleaseAsset => {
+  const cdnUrl = rewriteAssetUrlToCDN(asset.name, version);
+  return {
+    name: asset.name,
+    url: cdnUrl || asset.browser_download_url,
+    fallbackUrl: cdnUrl ? asset.browser_download_url : undefined,
+    size: asset.size,
+    contentType: asset.content_type,
+  };
+};
 
 type RuntimePlatformInfo = {
   platform: NodeJS.Platform;
@@ -195,10 +217,10 @@ export const pickRecommendedAsset = (
   return scored[0]?.asset;
 };
 
-const resolveRepo = (requestRepo?: string): string => {
-  const envRepo = process.env.AIONUI_GITHUB_REPO?.trim();
-  const repo = (requestRepo || envRepo || DEFAULT_REPO).trim();
-  return repo || DEFAULT_REPO;
+const resolveRepo = (requestRepo?: string): string | null => {
+  const envRepo = (process.env[GITHUB_REPO_ENV] || process.env[LEGACY_GITHUB_REPO_ENV] || '').trim();
+  const repo = (requestRepo || envRepo).trim();
+  return repo || null;
 };
 
 const assertAllowedUrl = async (rawUrl: string) => {
@@ -212,7 +234,7 @@ const assertAllowedUrl = async (rawUrl: string) => {
   if (parsed.protocol !== 'https:') {
     throw new Error((await getI18n()).t('update.errors.httpsOnly'));
   }
-  if (!ALLOWED_DOWNLOAD_HOSTS.has(parsed.hostname)) {
+  if (!getAllowedDownloadHosts().has(parsed.hostname)) {
     throw new Error((await getI18n()).t('update.errors.hostNotAllowed', { host: parsed.hostname }));
   }
 };
@@ -323,7 +345,7 @@ const sanitizeFileName = (name: string): string => {
   // Keep only base name and trim weird whitespace.
   const base = path.basename(name).trim();
   // Avoid empty names.
-  return base || `AionUi-update-${Date.now()}`;
+  return base || `ZhanluWork-update-${Date.now()}`;
 };
 
 const ensureUniquePath = (target: string): string => {
@@ -555,6 +577,9 @@ export function initUpdateBridge(): void {
     async (params): Promise<{ success: boolean; data?: UpdateCheckResult; msg?: string }> => {
       try {
         const repo = resolveRepo(params?.repo);
+        if (!repo) {
+          return { success: false, msg: (await getI18n()).t('update.errors.updateSourceNotConfigured') };
+        }
         const includePrerelease = Boolean(params?.includePrerelease);
         const currentVersion = app.getVersion();
 

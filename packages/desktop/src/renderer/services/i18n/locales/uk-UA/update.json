@@ -40,7 +40,8 @@
     "downloadNoBody": "Відповідь завантаження не містить тіла",
     "missingUrl": "Відсутній URL завантаження",
     "checkReturnedNull": "Перевірка оновлень не повернула результат. Потрібен запакований застосунок або примусова конфігурація оновлення для розробки.",
-    "missingDownloadId": "Відсутній ID завантаження"
+    "missingDownloadId": "Відсутній ID завантаження",
+    "updateSourceNotConfigured": "Zhanlu Work update source is not configured. Configure an update source before checking for updates."
   },
   "releaseNotesLoading": "Отримання відомостей про оновлення...",
   "releaseNotesFailed": "Не вдалося отримати відомості.",

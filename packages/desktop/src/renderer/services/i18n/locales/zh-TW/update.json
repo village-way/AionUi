@@ -40,7 +40,8 @@
     "downloadNoBody": "下載回應沒有內容",
     "missingUrl": "缺少下載網址",
     "checkReturnedNull": "更新檢查沒有回傳結果，需要打包應用程式或強制啟用開發更新設定。",
-    "missingDownloadId": "缺少下載 ID"
+    "missingDownloadId": "缺少下載 ID",
+    "updateSourceNotConfigured": "湛盧 Work 更新來源尚未配置。請配置更新來源後再檢查更新。"
   },
   "releaseNotesLoading": "正在取得更新內容",
   "releaseNotesFailed": "取得失敗，可",

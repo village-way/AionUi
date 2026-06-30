@@ -25,7 +25,7 @@ import {
   type AgentAvailabilityFilter,
 } from './agentFilters';
 
-const LOCAL_AGENT_SETUP_GUIDE_URL = 'https://github.com/iOfficeAI/AionUi/wiki/ACP-Setup';
+const LOCAL_AGENT_SETUP_GUIDE_URL = 'https://github.com/Ecloud/ZhanluWork/wiki/ACP-Setup';
 
 const LocalAgents: React.FC = () => {
   const { t } = useTranslation();
