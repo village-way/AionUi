@@ -67,13 +67,7 @@ vi.mock('@/renderer/pages/cron', () => ({
 }));
 
 vi.mock('@/renderer/components/settings/DirectorySelectionModal', () => ({
-  default: ({
-    visible,
-    onConfirm,
-  }: {
-    visible: boolean;
-    onConfirm: (paths: string[] | undefined) => void;
-  }) =>
+  default: ({ visible, onConfirm }: { visible: boolean; onConfirm: (paths: string[] | undefined) => void }) =>
     visible ? (
       <div data-testid='directory-modal'>
         <button type='button' data-testid='directory-confirm' onClick={() => onConfirm(['/tmp/workspace'])}>
@@ -213,9 +207,7 @@ import WorkspaceGroupedHistory from '@/renderer/pages/conversation/GroupedHistor
 
 describe('WorkspaceGroupedHistory section actions', () => {
   it('creates chats from the workspace and chat section headers', () => {
-    render(
-      <WorkspaceGroupedHistory onSessionClick={onSessionClickMock} onBatchModeChange={onBatchModeChangeMock} />
-    );
+    render(<WorkspaceGroupedHistory onSessionClick={onSessionClickMock} onBatchModeChange={onBatchModeChangeMock} />);
 
     expect(screen.getByText('Workspaces')).toBeInTheDocument();
     expect(screen.getByText('Chats')).toBeInTheDocument();

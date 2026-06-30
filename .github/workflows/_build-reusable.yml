@@ -471,6 +471,7 @@ jobs:
         run: |
           set -euo pipefail
 
+          export CSC_NAME="${IDENTITY#Developer ID Application: }"
           ${{ matrix.command }} 2>&1 | tee "${RUNNER_TEMP}/build.log"
 
           APP_PATH="$(find out -maxdepth 3 -type d -name "*.app" | head -n 1)"
@@ -502,13 +503,10 @@ jobs:
           APP_ID: ${{ secrets.APP_ID }}
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.TEAM_ID }}
           TEAM_ID: ${{ secrets.TEAM_ID }}
           IDENTITY: ${{ secrets.IDENTITY }}
-          appleId: ${{ secrets.APPLE_ID }}
-          appleIdPassword: ${{ secrets.APPLE_ID_PASSWORD }}
-          teamId: ${{ secrets.TEAM_ID }}
-          identity: ${{ secrets.IDENTITY }}
-          CSC_NAME: ${{ secrets.IDENTITY }}
           CSC_IDENTITY_AUTO_DISCOVERY: false
           REQUIRE_MAC_SIGNING: true
           REQUIRE_MAC_NOTARIZATION: true
