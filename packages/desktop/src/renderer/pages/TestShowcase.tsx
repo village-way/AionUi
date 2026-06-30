@@ -3,8 +3,10 @@ import React, { useState } from 'react';
 import StepsWrapper from '@/renderer/components/base/StepsWrapper';
 import ModalWrapper from '@/renderer/components/base/ModalWrapper';
 import { Check } from '@icon-park/react';
+import { useTranslation } from 'react-i18next';
 
 const ComponentsShowcase: React.FC = () => {
+  const { t } = useTranslation();
   const [message, contextHolder] = Message.useMessage();
   const [modalVisible, setModalVisible] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
@@ -14,7 +16,7 @@ const ComponentsShowcase: React.FC = () => {
       {contextHolder}
 
       <div>
-        <h1 className='text-3xl font-bold mb-2'>AionUi 自定义组件样式展示</h1>
+        <h1 className='text-3xl font-bold mb-2'>{t('common.appBrand')} 自定义组件样式展示</h1>
         <p className='text-t-secondary'>展示所有在 arco-override.css 中自定义的组件样式</p>
       </div>
 

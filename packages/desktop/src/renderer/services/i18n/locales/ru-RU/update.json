@@ -40,7 +40,8 @@
     "downloadNoBody": "Ответ загрузки не содержит данные",
     "missingUrl": "Отсутствует URL",
     "checkReturnedNull": "Проверка обновлений не вернула результат (режим разработки)",
-    "missingDownloadId": "Отсутствует ID загрузки"
+    "missingDownloadId": "Отсутствует ID загрузки",
+    "updateSourceNotConfigured": "Zhanlu Work update source is not configured. Configure an update source before checking for updates."
   },
   "releaseNotesLoading": "Получение сведений об обновлении...",
   "releaseNotesFailed": "Не удалось получить сведения.",

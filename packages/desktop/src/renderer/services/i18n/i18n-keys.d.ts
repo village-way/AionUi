@@ -2334,6 +2334,7 @@ export type I18nKey =
   | 'update.errors.missingUrl'
   | 'update.errors.redirectNoLocation'
   | 'update.errors.tooManyRedirects'
+  | 'update.errors.updateSourceNotConfigured'
   | 'update.goToRelease'
   | 'update.installNow'
   | 'update.installWarning'

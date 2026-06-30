@@ -6,6 +6,8 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
+const RELEASE_CDN_BASE_URL = 'https://updates.zhanlu.work/releases';
+
 vi.mock('@office-ai/platform', () => ({
   bridge: {
     buildProvider: vi.fn(() => {
@@ -75,28 +77,29 @@ const makeGitHubReleaseResponse = () => [
     tag_name: 'v1.9.22',
     name: 'v1.9.22',
     body: 'release notes',
-    html_url: 'https://github.com/iOfficeAI/AionUi/releases/tag/v1.9.22',
+    html_url: 'https://github.com/Ecloud/ZhanluWork/releases/tag/v1.9.22',
     published_at: '2026-04-29T00:00:00Z',
     prerelease: false,
     draft: false,
     assets: [
       {
-        name: 'AionUi-1.9.22-mac-arm64.dmg',
+        name: 'ZhanluWork-1.9.22-mac-arm64.dmg',
         browser_download_url:
-          'https://github.com/iOfficeAI/AionUi/releases/download/v1.9.22/AionUi-1.9.22-mac-arm64.dmg',
+          'https://github.com/Ecloud/ZhanluWork/releases/download/v1.9.22/ZhanluWork-1.9.22-mac-arm64.dmg',
         size: 123,
         content_type: 'application/x-apple-diskimage',
       },
       {
-        name: 'AionUi-1.9.22-win-x64.exe',
-        browser_download_url: 'https://github.com/iOfficeAI/AionUi/releases/download/v1.9.22/AionUi-1.9.22-win-x64.exe',
+        name: 'ZhanluWork-1.9.22-win-x64.exe',
+        browser_download_url:
+          'https://github.com/Ecloud/ZhanluWork/releases/download/v1.9.22/ZhanluWork-1.9.22-win-x64.exe',
         size: 456,
         content_type: 'application/vnd.microsoft.portable-executable',
       },
       {
-        name: 'AionUi-1.9.22-linux-amd64.deb',
+        name: 'ZhanluWork-1.9.22-linux-x64.deb',
         browser_download_url:
-          'https://github.com/iOfficeAI/AionUi/releases/download/v1.9.22/AionUi-1.9.22-linux-amd64.deb',
+          'https://github.com/Ecloud/ZhanluWork/releases/download/v1.9.22/ZhanluWork-1.9.22-linux-x64.deb',
         size: 789,
       },
     ],
@@ -141,6 +144,11 @@ const makeDeferred = () => {
 describe('updateBridge CDN URL rewriting', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    process.env.ZHANLU_WORK_RELEASE_CDN_BASE_URL = RELEASE_CDN_BASE_URL;
+  });
+
+  afterEach(() => {
+    delete process.env.ZHANLU_WORK_RELEASE_CDN_BASE_URL;
   });
 
   it('rewrites asset.url to the CDN path and keeps GitHub URL in fallbackUrl', async () => {
@@ -152,22 +160,22 @@ describe('updateBridge CDN URL rewriting', () => {
 
     try {
       const handler = await getCheckHandler();
-      const result = await handler({ repo: 'iOfficeAI/AionUi' });
+      const result = await handler({ repo: 'Ecloud/ZhanluWork' });
 
       expect(result.success).toBe(true);
       expect(result.data?.currentVersion).toBe('1.0.0');
       const assets = result.data?.latest?.assets ?? [];
       expect(assets.length).toBe(3);
 
-      const macAsset = assets.find((a: { name: string }) => a.name === 'AionUi-1.9.22-mac-arm64.dmg');
+      const macAsset = assets.find((a: { name: string }) => a.name === 'ZhanluWork-1.9.22-mac-arm64.dmg');
       expect(macAsset).toBeDefined();
-      expect(macAsset?.url).toBe('https://static.aionui.com/releases/1.9.22/AionUi-1.9.22-mac-arm64.dmg');
+      expect(macAsset?.url).toBe('https://updates.zhanlu.work/releases/1.9.22/ZhanluWork-1.9.22-mac-arm64.dmg');
       expect(macAsset?.fallbackUrl).toBe(
-        'https://github.com/iOfficeAI/AionUi/releases/download/v1.9.22/AionUi-1.9.22-mac-arm64.dmg'
+        'https://github.com/Ecloud/ZhanluWork/releases/download/v1.9.22/ZhanluWork-1.9.22-mac-arm64.dmg'
       );
 
-      const linuxAsset = assets.find((a: { name: string }) => a.name === 'AionUi-1.9.22-linux-amd64.deb');
-      expect(linuxAsset?.url).toBe('https://static.aionui.com/releases/1.9.22/AionUi-1.9.22-linux-amd64.deb');
+      const linuxAsset = assets.find((a: { name: string }) => a.name === 'ZhanluWork-1.9.22-linux-x64.deb');
+      expect(linuxAsset?.url).toBe('https://updates.zhanlu.work/releases/1.9.22/ZhanluWork-1.9.22-linux-x64.deb');
     } finally {
       vi.unstubAllGlobals();
     }
@@ -182,9 +190,9 @@ describe('updateBridge CDN URL rewriting', () => {
 
     try {
       const handler = await getCheckHandler();
-      const result = await handler({ repo: 'iOfficeAI/AionUi' });
+      const result = await handler({ repo: 'Ecloud/ZhanluWork' });
       const asset = result.data?.latest?.assets?.[0];
-      expect(asset?.url).toMatch(/^https:\/\/static\.aionui\.com\/releases\/1\.9\.22\//);
+      expect(asset?.url).toMatch(/^https:\/\/updates\.zhanlu\.work\/releases\/1\.9\.22\//);
       expect(asset?.url).not.toMatch(/\/v1\.9\.22\//);
     } finally {
       vi.unstubAllGlobals();
@@ -193,9 +201,14 @@ describe('updateBridge CDN URL rewriting', () => {
 });
 
 describe('updateBridge allowlist includes CDN host', () => {
-  it('accepts static.aionui.com URLs for download', async () => {
+  afterEach(() => {
+    delete process.env.ZHANLU_WORK_RELEASE_CDN_BASE_URL;
+  });
+
+  it('accepts configured Zhanlu Work CDN URLs for download', async () => {
     vi.resetModules();
     vi.clearAllMocks();
+    process.env.ZHANLU_WORK_RELEASE_CDN_BASE_URL = RELEASE_CDN_BASE_URL;
 
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
@@ -221,8 +234,8 @@ describe('updateBridge allowlist includes CDN host', () => {
 
       const result = await handler({
         downloadId: 'manual-download-1',
-        url: 'https://static.aionui.com/releases/1.9.22/AionUi-1.9.22-mac-arm64.dmg',
-        file_name: 'AionUi-1.9.22-mac-arm64.dmg',
+        url: 'https://updates.zhanlu.work/releases/1.9.22/ZhanluWork-1.9.22-mac-arm64.dmg',
+        file_name: 'ZhanluWork-1.9.22-mac-arm64.dmg',
       });
 
       expect(result.success).toBe(true);

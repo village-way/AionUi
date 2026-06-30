@@ -20,8 +20,10 @@ import { parse } from 'semver';
 import { recordAutoUpdateQuitAndInstall, recordAutoUpdateStatus } from './autoUpdateDiagnostics';
 import { buildCdnFeedOptions } from './updateFeed';
 
-const FORCE_DEV_AUTO_UPDATE_ENV = 'AIONUI_FORCE_DEV_AUTO_UPDATE';
-const DEBUG_AUTO_UPDATE_CURRENT_VERSION_ENV = 'AIONUI_DEBUG_AUTO_UPDATE_CURRENT_VERSION';
+const FORCE_DEV_AUTO_UPDATE_ENV = 'ZHANLU_WORK_FORCE_DEV_AUTO_UPDATE';
+const LEGACY_FORCE_DEV_AUTO_UPDATE_ENV = 'AIONUI_FORCE_DEV_AUTO_UPDATE';
+const DEBUG_AUTO_UPDATE_CURRENT_VERSION_ENV = 'ZHANLU_WORK_DEBUG_AUTO_UPDATE_CURRENT_VERSION';
+const LEGACY_DEBUG_AUTO_UPDATE_CURRENT_VERSION_ENV = 'AIONUI_DEBUG_AUTO_UPDATE_CURRENT_VERSION';
 
 /**
  * Returns the appropriate update channel name based on the current platform and architecture.
@@ -115,19 +117,25 @@ class AutoUpdaterService extends EventEmitter {
       autoUpdater.channel = channel;
       log.info(`Update channel set to: ${channel}`);
     }
-    autoUpdater.setFeedURL(cdnFeedOptions);
-    log.info('Update feed set to CDN provider');
-    log.debug('[auto-update] CDN feed configured', {
-      provider: cdnFeedOptions.provider,
-      url: cdnFeedOptions.url,
-      channel: channel ?? 'latest',
-      platform: process.platform,
-      arch: process.arch,
-    });
+    if (cdnFeedOptions) {
+      autoUpdater.setFeedURL(cdnFeedOptions);
+      log.info('Update feed set to Zhanlu Work provider');
+      log.debug('[auto-update] feed configured', {
+        provider: cdnFeedOptions.provider,
+        url: cdnFeedOptions.url,
+        channel: channel ?? 'latest',
+        platform: process.platform,
+        arch: process.arch,
+      });
+    } else {
+      log.warn('[auto-update] Zhanlu Work update feed is not configured; electron-updater checks are disabled');
+    }
   }
 
   private configureDevAutoUpdateDebug(): void {
-    if (app.isPackaged || process.env[FORCE_DEV_AUTO_UPDATE_ENV] !== '1') {
+    const forceDevAutoUpdate =
+      process.env[FORCE_DEV_AUTO_UPDATE_ENV] === '1' || process.env[LEGACY_FORCE_DEV_AUTO_UPDATE_ENV] === '1';
+    if (app.isPackaged || !forceDevAutoUpdate) {
       return;
     }
 
@@ -142,7 +150,8 @@ class AutoUpdaterService extends EventEmitter {
     // setFeedURL() — the updateConfigPath setter clears the injected provider.
     this.ensureDevUpdateConfig();
 
-    const debugCurrentVersion = process.env[DEBUG_AUTO_UPDATE_CURRENT_VERSION_ENV];
+    const debugCurrentVersion =
+      process.env[DEBUG_AUTO_UPDATE_CURRENT_VERSION_ENV] || process.env[LEGACY_DEBUG_AUTO_UPDATE_CURRENT_VERSION_ENV];
     if (!debugCurrentVersion) {
       return;
     }
@@ -163,17 +172,21 @@ class AutoUpdaterService extends EventEmitter {
   /**
    * Write a minimal dev-app-update.yml and point the updater at it, so the
    * download step's `updaterCacheDirName` lookup succeeds in dev mode. The
-   * `provider`/`url` here are placeholders — the real feed comes from
-   * setFeedURL() — but `updaterCacheDirName` must match the packaged value
-   * (electron-builder defaults it to the appId) to reuse the same cache dir.
+   * `provider`/`url` here mirror the configured feed, and `updaterCacheDirName`
+   * must match the packaged value (electron-builder defaults it to the appId)
+   * to reuse the same cache dir.
    */
   private ensureDevUpdateConfig(): void {
     try {
       const cdnFeedOptions = buildCdnFeedOptions();
+      if (!cdnFeedOptions) {
+        log.warn('[auto-update] Skipping dev update config because Zhanlu Work update feed is not configured');
+        return;
+      }
       const devConfig = [
         'provider: generic',
         `url: ${cdnFeedOptions.url}`,
-        'updaterCacheDirName: com.aionui.app',
+        'updaterCacheDirName: Ecloud.ZhanluWork',
         '',
       ].join('\n');
       const configPath = path.join(app.getPath('userData'), 'dev-app-update.yml');
@@ -379,7 +392,7 @@ class AutoUpdaterService extends EventEmitter {
 
   /**
    * In dev mode the running shell is the stock Electron bundle (com.github.Electron),
-   * while the downloaded archive contains the packaged app (com.aionui.app). Squirrel.Mac
+   * while the downloaded archive contains the packaged app (Ecloud.ZhanluWork). Squirrel.Mac
    * looks for a bundle matching the *running* id, fails to find it, and reports
    * "Could not locate update bundle". This is expected in dev and cannot be reproduced
    * without a packaged build, so surface a clearer message instead of the raw error.
@@ -425,8 +438,13 @@ class AutoUpdaterService extends EventEmitter {
 
       if (this._allowPrerelease) {
         log.info('Skipping electron-updater check for prerelease manual mode');
-        log.debug('[auto-update] CDN stable feed skipped because prerelease mode is handled by GitHub API');
+        log.debug('[auto-update] stable feed skipped because prerelease mode is handled by manual release checks');
         return { success: true };
+      }
+
+      if (!buildCdnFeedOptions()) {
+        const { default: i18n } = await import('./i18n');
+        return { success: false, error: i18n.t('update.errors.updateSourceNotConfigured') };
       }
 
       const result = await autoUpdater.checkForUpdates();
@@ -439,12 +457,12 @@ class AutoUpdaterService extends EventEmitter {
       // When isUpdateAvailable is false, updateInfoAndProvider is NOT set internally,
       // so a subsequent downloadUpdate() call would fail with "Please check update first".
       if (!result.isUpdateAvailable) {
-        log.debug('[auto-update] no update available from CDN feed', {
+        log.debug('[auto-update] no update available from configured feed', {
           version: result.updateInfo.version,
         });
         return { success: true };
       }
-      log.debug('[auto-update] update available from CDN feed', {
+      log.debug('[auto-update] update available from configured feed', {
         version: result.updateInfo.version,
         releaseDate: result.updateInfo.releaseDate,
       });

@@ -4,12 +4,13 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { UpdateInfo } from 'electron-updater';
 import type { AppUpdater } from 'electron-updater/out/AppUpdater';
 import type { ProviderRuntimeOptions } from 'electron-updater/out/providers/Provider';
 import { CdnGenericProvider } from '@/process/services/cdnGenericProvider';
-import { buildCdnFeedOptions, CDN_UPDATE_BASE_URL } from '@/process/services/updateFeed';
+
+const UPDATE_BASE_URL = 'https://updates.zhanlu.work/releases';
 
 const makeRuntimeOptions = (): ProviderRuntimeOptions => ({
   isUseMultipleRangeRequest: true,
@@ -20,12 +21,29 @@ const makeRuntimeOptions = (): ProviderRuntimeOptions => ({
 });
 
 describe('CDN update feed options', () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
   it('builds a custom electron-updater provider pointed at the release CDN', () => {
+    vi.resetModules();
+    vi.stubEnv('ZHANLU_WORK_UPDATE_BASE_URL', UPDATE_BASE_URL);
+    return import('@/process/services/updateFeed').then(({ buildCdnFeedOptions, CDN_UPDATE_BASE_URL }) => {
+      const options = buildCdnFeedOptions();
+
+      expect(options?.provider).toBe('custom');
+      expect(options?.url).toBe(CDN_UPDATE_BASE_URL);
+      expect(options?.url).toBe(UPDATE_BASE_URL);
+      expect(options?.updateProvider.name).toBe('CdnGenericProvider');
+    });
+  });
+
+  it('returns no feed options until Zhanlu Work update source is configured', async () => {
+    vi.resetModules();
+    const { buildCdnFeedOptions } = await import('@/process/services/updateFeed');
     const options = buildCdnFeedOptions();
 
-    expect(options.provider).toBe('custom');
-    expect(options.url).toBe(CDN_UPDATE_BASE_URL);
-    expect(options.updateProvider).toBe(CdnGenericProvider);
+    expect(options).toBeNull();
   });
 });
 
@@ -34,7 +52,7 @@ describe('CdnGenericProvider', () => {
     const provider = new CdnGenericProvider(
       {
         provider: 'custom',
-        url: 'https://static.aionui.com/releases',
+        url: UPDATE_BASE_URL,
       },
       {} as AppUpdater,
       makeRuntimeOptions()
@@ -44,15 +62,15 @@ describe('CdnGenericProvider', () => {
       version: '2.1.14',
       files: [
         {
-          url: 'AionUi-2.1.14-mac-arm64.dmg',
+          url: 'ZhanluWork-2.1.14-mac-arm64.dmg',
           sha512: 'sha512-value',
         },
       ],
-      path: 'AionUi-2.1.14-mac-arm64.dmg',
+      path: 'ZhanluWork-2.1.14-mac-arm64.dmg',
       sha512: 'sha512-value',
       releaseDate: '2026-06-08T00:00:00.000Z',
     } satisfies UpdateInfo);
 
-    expect(files[0]?.url.href).toBe('https://static.aionui.com/releases/2.1.14/AionUi-2.1.14-mac-arm64.dmg');
+    expect(files[0]?.url.href).toBe(`${UPDATE_BASE_URL}/2.1.14/ZhanluWork-2.1.14-mac-arm64.dmg`);
   });
 });

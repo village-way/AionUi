@@ -5,8 +5,8 @@
 
 !ifndef AIONUI_APP_PROCESS_CHECK_DEFINED
 !define AIONUI_APP_PROCESS_CHECK_DEFINED
-!define AIONUI_APP_EXECUTABLE_FILENAME "AionUi.exe"
-!define AIONUI_PROCESS_CHECK_LOG "aionui-installer-process-check.log"
+!define AIONUI_APP_EXECUTABLE_FILENAME "ZhanluWork.exe"
+!define AIONUI_PROCESS_CHECK_LOG "zhanlu-work-installer-process-check.log"
 
 !ifndef BUILD_UNINSTALLER
   Var /GLOBAL AionUiUninstallHadErrors
@@ -37,15 +37,15 @@
 
   ${If} ${FileExists} "$AionUiInstalledUninstaller"
     InitPluginsDir
-    StrCpy $AionUiBundledUninstaller "$PLUGINSDIR\AionUi-fixed-uninstaller.exe"
+    StrCpy $AionUiBundledUninstaller "$PLUGINSDIR\ZhanluWork-fixed-uninstaller.exe"
     SetOverwrite on
-    File "/oname=$PLUGINSDIR\AionUi-fixed-uninstaller.exe" "${UNINSTALLER_OUT_FILE}"
+    File "/oname=$PLUGINSDIR\ZhanluWork-fixed-uninstaller.exe" "${UNINSTALLER_OUT_FILE}"
 
     ClearErrors
     CopyFiles /SILENT "$AionUiBundledUninstaller" "$AionUiInstalledUninstaller"
     ${If} ${Errors}
       !insertmacro AIONUI_LOG_UNINSTALLER_REPAIR "copy-failed"
-      MessageBox MB_OK|MB_ICONEXCLAMATION "AionUi cannot update because the existing uninstaller is locked.$\r$\n$\r$\nPlease close AionUi completely and try again. If it still fails, restart Windows and run this installer again.$\r$\n$\r$\nIf the problem continues, uninstall the old AionUi from Windows Settings, then run this installer again."
+      MessageBox MB_OK|MB_ICONEXCLAMATION "Zhanlu Work cannot update because the existing uninstaller is locked.$\r$\n$\r$\nPlease close Zhanlu Work completely and try again. If it still fails, restart Windows and run this installer again.$\r$\n$\r$\nIf the problem continues, uninstall the old Zhanlu Work from Windows Settings, then run this installer again."
       SetErrorLevel 2
       Quit
     ${Else}
@@ -310,9 +310,9 @@ Function .onVerifyInstDir
   ${IfNot} ${RunningX64}
     MessageBox MB_OK|MB_ICONSTOP \
       "Installation package architecture mismatch$\n$\n\
-      This AionUi installer is designed for x64 architecture.$\n$\n\
+      This Zhanlu Work installer is designed for x64 architecture.$\n$\n\
       Your system is 32-bit architecture. Please download the appropriate version for your architecture.$\n$\n\
-      Download: https://github.com/iOfficeAI/AionUi/releases"
+      Download: https://github.com/Ecloud/ZhanluWork/releases"
     Quit
   ${EndIf}
 
@@ -320,9 +320,9 @@ Function .onVerifyInstDir
   ${If} ${IsNativeARM64}
     MessageBox MB_OK|MB_ICONSTOP \
       "Installation package architecture mismatch$\n$\n\
-      This AionUi installer is designed for x64 architecture.$\n$\n\
+      This Zhanlu Work installer is designed for x64 architecture.$\n$\n\
       Your system is ARM64 architecture. Please download the ARM64 version.$\n$\n\
-      Download: https://github.com/iOfficeAI/AionUi/releases"
+      Download: https://github.com/Ecloud/ZhanluWork/releases"
     Quit
   ${EndIf}
 FunctionEnd

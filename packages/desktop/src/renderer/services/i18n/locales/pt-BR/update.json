@@ -40,7 +40,8 @@
     "downloadNoBody": "A resposta do download não incluiu conteúdo",
     "missingUrl": "URL de download ausente",
     "checkReturnedNull": "A verificação de atualização não retornou resultado. É necessário usar o app empacotado ou forçar a configuração de atualização de desenvolvimento.",
-    "missingDownloadId": "ID de download ausente"
+    "missingDownloadId": "ID de download ausente",
+    "updateSourceNotConfigured": "Zhanlu Work update source is not configured. Configure an update source before checking for updates."
   },
   "releaseNotesLoading": "Buscando detalhes da atualização...",
   "releaseNotesFailed": "Falha ao buscar detalhes.",

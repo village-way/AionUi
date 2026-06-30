@@ -40,7 +40,8 @@
     "downloadNoBody": "İndirme yanıtında gövde yok",
     "missingUrl": "İndirme URL'si eksik",
     "checkReturnedNull": "Güncelleme kontrolü sonuç döndürmedi. Paketlenmiş uygulama veya zorunlu geliştirme güncelleme yapılandırması gerekir.",
-    "missingDownloadId": "İndirme ID eksik"
+    "missingDownloadId": "İndirme ID eksik",
+    "updateSourceNotConfigured": "Zhanlu Work update source is not configured. Configure an update source before checking for updates."
   },
   "releaseNotesLoading": "Güncelleme ayrıntıları alınıyor...",
   "releaseNotesFailed": "Ayrıntılar alınamadı.",

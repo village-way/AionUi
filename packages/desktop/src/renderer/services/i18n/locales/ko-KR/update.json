@@ -40,7 +40,8 @@
     "downloadNoBody": "다운로드 응답에 본문이 없습니다",
     "missingUrl": "다운로드 URL이 없습니다",
     "checkReturnedNull": "업데이트 확인 결과가 없습니다. 패키지된 앱 또는 강제 개발 업데이트 설정이 필요합니다.",
-    "missingDownloadId": "다운로드 ID가 없습니다"
+    "missingDownloadId": "다운로드 ID가 없습니다",
+    "updateSourceNotConfigured": "Zhanlu Work update source is not configured. Configure an update source before checking for updates."
   },
   "releaseNotesLoading": "업데이트 내용을 가져오는 중",
   "releaseNotesFailed": "가져오지 못했습니다.",

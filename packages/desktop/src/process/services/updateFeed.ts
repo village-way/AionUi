@@ -7,13 +7,18 @@
 import { CdnGenericProvider } from './cdnGenericProvider';
 import type { CdnGenericProviderConfiguration } from './cdnGenericProvider';
 
-export const CDN_UPDATE_BASE_URL = 'https://static.aionui.com/releases';
+export const ZHANLU_WORK_UPDATE_BASE_URL_ENV = 'ZHANLU_WORK_UPDATE_BASE_URL';
+export const CDN_UPDATE_BASE_URL = process.env[ZHANLU_WORK_UPDATE_BASE_URL_ENV]?.trim() || '';
 
 export type CdnFeedOptions = CdnGenericProviderConfiguration & {
   updateProvider: typeof CdnGenericProvider;
 };
 
-export function buildCdnFeedOptions(): CdnFeedOptions {
+export function buildCdnFeedOptions(): CdnFeedOptions | null {
+  if (!CDN_UPDATE_BASE_URL) {
+    return null;
+  }
+
   return {
     provider: 'custom',
     url: CDN_UPDATE_BASE_URL,

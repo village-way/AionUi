@@ -40,7 +40,8 @@
     "downloadNoBody": "下载响应没有内容",
     "missingUrl": "缺少下载地址",
     "checkReturnedNull": "更新检查没有返回结果，需要打包应用或强制启用开发更新配置。",
-    "missingDownloadId": "缺少下载 ID"
+    "missingDownloadId": "缺少下载 ID",
+    "updateSourceNotConfigured": "湛卢 Work 更新源尚未配置。请配置更新源后再检查更新。"
   },
   "releaseNotesLoading": "更新内容获取中",
   "releaseNotesFailed": "获取失败，可",
