@@ -62,6 +62,44 @@ describe('release packaging configuration', () => {
     expect(script).toMatch(/--mac\s+dmg\s+zip\s+--\$\{targetArch\}\s+--prepackaged/);
   });
 
+  it('requires strict signing and notarization for macOS CI builds', () => {
+    const workflow = readProjectFile('.github/workflows/_build-reusable.yml');
+
+    expect(workflow).toContain('BUILD_CERTIFICATE_BASE64 secret is required for signed macOS builds');
+    expect(workflow).toContain('P12_PASSWORD secret is required for signed macOS builds');
+    expect(workflow).toContain('IDENTITY secret is required for signed macOS builds');
+    expect(workflow).toContain('REQUIRE_MAC_SIGNING: true');
+    expect(workflow).toContain('REQUIRE_MAC_NOTARIZATION: true');
+    expect(workflow).toContain('Signing identity not found');
+  });
+
+  it('fails macOS CI when signing, notarization, or Gatekeeper verification fails', () => {
+    const workflow = readProjectFile('.github/workflows/_build-reusable.yml');
+    const macBuildStep = workflow.slice(
+      workflow.indexOf('      - name: Build with electron-builder (macOS)'),
+      workflow.indexOf('      # Linux: Standard build without special error handling')
+    );
+
+    expect(macBuildStep).toContain('set -euo pipefail');
+    expect(macBuildStep).toContain('codesign --verify --deep --strict --verbose=2 "$APP_PATH"');
+    expect(macBuildStep).toContain('xcrun stapler validate "$APP_PATH"');
+    expect(macBuildStep).toContain('spctl --assess --type execute --verbose "$APP_PATH"');
+    expect(macBuildStep).not.toContain('Notarization Warning');
+    expect(macBuildStep).not.toContain('exit 0  # Allow CI to continue');
+  });
+
+  it('uses repository secret names and staples notarized macOS apps in afterSign', () => {
+    const script = readProjectFile('scripts/afterSign.js');
+
+    expect(script).toContain("readEnv('APPLE_ID', 'appleId')");
+    expect(script).toContain("readEnv('APPLE_ID_PASSWORD', 'appleIdPassword')");
+    expect(script).toContain("readEnv('TEAM_ID', 'teamId')");
+    expect(script).toContain("isStrictMode('REQUIRE_MAC_SIGNING')");
+    expect(script).toContain("isStrictMode('REQUIRE_MAC_NOTARIZATION')");
+    expect(script).toContain('xcrun stapler staple');
+    expect(script).toContain('xcrun stapler validate');
+  });
+
   it('fails release asset preparation when a mac zip is missing', () => {
     const tempDir = mkdtempSync(resolve(tmpdir(), 'aionui-release-assets-'));
     const artifactsDir = resolve(tempDir, 'build-artifacts');
