@@ -443,6 +443,15 @@ const GuidPage: React.FC = () => {
       setSelectedAcpModel={setGuidSelectedAcpModel}
     />
   );
+  const assistantSelectorNode = (
+    <AssistantSelectionArea
+      selectedAssistantId={agentSelection.selectedAssistantId}
+      assistants={agentSelection.assistants}
+      localeKey={localeKey}
+      onSelectAssistant={handleSelectAssistant}
+      variant='dropdown'
+    />
+  );
 
   const handleSpeechTranscript = useCallback(
     (transcript: string) => {
@@ -458,6 +467,7 @@ const GuidPage: React.FC = () => {
       files={guidInput.files}
       onFilesUploaded={guidInput.handleFilesUploaded}
       modelSelectorNode={modelSelectorNode}
+      assistantSelectorNode={assistantSelectorNode}
       modeBackend={agentSelection.selectedAssistantBackend}
       selectedMode={agentSelection.selectedMode}
       dynamicModes={agentSelection.currentAgentModeOptions}
@@ -489,13 +499,6 @@ const GuidPage: React.FC = () => {
           <div className={styles.heroHeader}>
             <p className='text-2xl font-semibold mb-0 text-0 text-center'>{t('conversation.welcome.title')}</p>
           </div>
-
-          <AssistantSelectionArea
-            selectedAssistantId={agentSelection.selectedAssistantId}
-            assistants={agentSelection.assistants}
-            localeKey={localeKey}
-            onSelectAssistant={handleSelectAssistant}
-          />
 
           <GuidInputCard
             input={guidInput.input}

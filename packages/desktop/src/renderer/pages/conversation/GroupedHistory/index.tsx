@@ -9,6 +9,8 @@ import AionModal from '@/renderer/components/base/AionModal';
 import DirectorySelectionModal from '@/renderer/components/settings/DirectorySelectionModal';
 import { useLayoutContext } from '@/renderer/hooks/context/LayoutContext';
 import { useCronJobsMap } from '@/renderer/pages/cron';
+import { blurActiveElement } from '@/renderer/utils/ui/focus';
+import { cleanupSiderTooltips } from '@/renderer/utils/ui/siderTooltip';
 import { DndContext, DragOverlay, closestCenter } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { Button, Dropdown, Empty, Input, Menu, Modal, Tooltip } from '@arco-design/web-react';
@@ -99,6 +101,23 @@ const WorkspaceGroupedHistory: React.FC<WorkspaceGroupedHistoryProps> = ({
     [collapsedSections, toggleSection]
   );
 
+  const renderSectionAddButton = useCallback(
+    ({ label, testId, onClick }: { label: string; testId: string; onClick: () => void }) => (
+      <Tooltip content={label} position='top'>
+        <Button
+          data-testid={testId}
+          aria-label={label}
+          type='text'
+          size='mini'
+          className='!size-20px !min-w-0 !p-0 !rounded-4px !text-t-secondary hover:!bg-fill-4 hover:!text-t-primary'
+          icon={<Plus theme='outline' size='14' fill='currentColor' className='block leading-none' />}
+          onClick={onClick}
+        />
+      </Tooltip>
+    ),
+    []
+  );
+
   // Sync active conversation ref when route changes (for URL navigation)
   // This doesn't trigger state update, avoiding double render
   useEffect(() => {
@@ -176,6 +195,29 @@ const WorkspaceGroupedHistory: React.FC<WorkspaceGroupedHistoryProps> = ({
     setSelectedConversationIds,
     onBatchModeChange,
   });
+  const [showWorkspaceDirectorySelector, setShowWorkspaceDirectorySelector] = useState(false);
+
+  const handleNewChat = useCallback(() => {
+    cleanupSiderTooltips();
+    blurActiveElement();
+    onBatchModeChange?.(false);
+    Promise.resolve(navigate('/guid', { state: { resetAssistant: true } })).catch(console.error);
+    onSessionClick?.();
+  }, [navigate, onBatchModeChange, onSessionClick]);
+
+  const handleNewWorkspaceChat = useCallback(
+    (paths: string[] | undefined) => {
+      setShowWorkspaceDirectorySelector(false);
+      const workspace = paths?.[0];
+      if (!workspace) return;
+      cleanupSiderTooltips();
+      blurActiveElement();
+      onBatchModeChange?.(false);
+      Promise.resolve(navigate('/guid', { state: { workspace } })).catch(console.error);
+      onSessionClick?.();
+    },
+    [navigate, onBatchModeChange, onSessionClick]
+  );
 
   const { sensors, activeId, activeConversation, handleDragStart, handleDragEnd, handleDragCancel, isDragEnabled } =
     useDragAndDrop({
@@ -402,6 +444,11 @@ const WorkspaceGroupedHistory: React.FC<WorkspaceGroupedHistoryProps> = ({
         onConfirm={handleSelectExportDirectoryFromModal}
         onCancel={() => setShowExportDirectorySelector(false)}
       />
+      <DirectorySelectionModal
+        visible={showWorkspaceDirectorySelector}
+        onConfirm={handleNewWorkspaceChat}
+        onCancel={() => setShowWorkspaceDirectorySelector(false)}
+      />
 
       {batchMode && !collapsed && (
         <div className='px-12px pb-8px'>
@@ -541,7 +588,17 @@ const WorkspaceGroupedHistory: React.FC<WorkspaceGroupedHistoryProps> = ({
         {/* L1: Projects section — workspace folders, peer to conversations */}
         {projectGroups.length > 0 && (
           <div className='min-w-0'>
-            {!collapsed && <SectionLabel sectionKey='projects' label={t('conversation.history.projectsSection')} />}
+            {!collapsed && (
+              <SectionLabel
+                sectionKey='projects'
+                label={t('conversation.history.projectsSection')}
+                trailing={renderSectionAddButton({
+                  label: t('conversation.history.newConversationInProject'),
+                  testId: 'workspace-section-create-btn',
+                  onClick: () => setShowWorkspaceDirectorySelector(true),
+                })}
+              />
+            )}
             {!collapsedSections.has('projects') &&
               projectGroups.map((group) => {
                 const projectMenu = (
@@ -632,7 +689,15 @@ const WorkspaceGroupedHistory: React.FC<WorkspaceGroupedHistoryProps> = ({
         {conversationOnlySections.length > 0 && (
           <div className='min-w-0'>
             {!collapsed && (
-              <SectionLabel sectionKey='conversations' label={t('conversation.history.conversationsSection')} />
+              <SectionLabel
+                sectionKey='conversations'
+                label={t('conversation.history.conversationsSection')}
+                trailing={renderSectionAddButton({
+                  label: t('conversation.welcome.newConversation'),
+                  testId: 'chat-section-create-btn',
+                  onClick: handleNewChat,
+                })}
+              />
             )}
             {!collapsedSections.has('conversations') &&
               conversationOnlySections.map((section) => (

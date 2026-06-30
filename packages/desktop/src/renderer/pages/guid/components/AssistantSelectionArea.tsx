@@ -17,6 +17,7 @@ type AssistantSelectionAreaProps = {
   assistants: Assistant[];
   localeKey: string;
   onSelectAssistant: (assistantId: string) => void;
+  variant?: 'pillBar' | 'dropdown';
 };
 
 const AssistantSelectionArea: React.FC<AssistantSelectionAreaProps> = ({
@@ -24,6 +25,7 @@ const AssistantSelectionArea: React.FC<AssistantSelectionAreaProps> = ({
   assistants,
   localeKey,
   onSelectAssistant,
+  variant = 'pillBar',
 }) => {
   const { t } = useTranslation();
   const [moreVisible, setMoreVisible] = useState(false);
@@ -61,11 +63,33 @@ const AssistantSelectionArea: React.FC<AssistantSelectionAreaProps> = ({
       return label.toLowerCase().includes(query);
     });
   }, [localeKey, overflowAssistants, search]);
+  const filteredDropdownAssistants = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    if (!query) return enabledAssistants;
+    return enabledAssistants.filter((assistant) => {
+      const label = assistant.name_i18n?.[localeKey] || assistant.name;
+      return label.toLowerCase().includes(query);
+    });
+  }, [enabledAssistants, localeKey, search]);
 
   if (enabledAssistants.length === 0) return null;
 
-  const renderAssistantPill = (assistant: Assistant, testId: string) => {
+  const renderAssistantAvatar = (assistant: Assistant) => {
     const avatar = resolveAssistantAvatar(assistant.avatar);
+    return (
+      <span className='inline-flex h-20px w-20px items-center justify-center overflow-hidden rounded-999px bg-fill-2'>
+        {avatar.kind === 'image' ? (
+          <img src={avatar.value} alt='' className='h-full w-full object-contain' />
+        ) : avatar.kind === 'emoji' ? (
+          <span className={styles.assistantCardEmoji}>{avatar.value}</span>
+        ) : (
+          <Robot theme='outline' size={14} />
+        )}
+      </span>
+    );
+  };
+
+  const renderAssistantPill = (assistant: Assistant, testId: string) => {
     const isSelected = selectedId === assistant.id;
     const label = assistant.name_i18n?.[localeKey] || assistant.name;
 
@@ -86,21 +110,86 @@ const AssistantSelectionArea: React.FC<AssistantSelectionAreaProps> = ({
         onClick={() => {
           onSelectAssistant(assistant.id);
           setMoreVisible(false);
+          setSearch('');
         }}
       >
-        <span className='inline-flex h-20px w-20px items-center justify-center overflow-hidden rounded-999px bg-fill-2'>
-          {avatar.kind === 'image' ? (
-            <img src={avatar.value} alt='' className='h-full w-full object-contain' />
-          ) : avatar.kind === 'emoji' ? (
-            <span className={styles.assistantCardEmoji}>{avatar.value}</span>
-          ) : (
-            <Robot theme='outline' size={14} />
-          )}
-        </span>
+        {renderAssistantAvatar(assistant)}
         <span className='max-w-180px truncate whitespace-nowrap'>{label}</span>
       </Button>
     );
   };
+
+  const selectedAssistant = enabledAssistants.find((assistant) => assistant.id === selectedId) ?? enabledAssistants[0];
+  const selectedAssistantLabel = selectedAssistant.name_i18n?.[localeKey] || selectedAssistant.name;
+
+  if (variant === 'dropdown') {
+    const dropdownDroplist = (
+      <div
+        className='min-w-260px rounded-12px border border-border-2 p-8px shadow-lg'
+        style={{ background: 'var(--bg-base, #fff)' }}
+      >
+        <div className='mb-8px'>
+          <Input
+            size='small'
+            value={search}
+            onChange={setSearch}
+            prefix={<Search theme='outline' size={14} />}
+            placeholder={t('team.create.searchPlaceholder', { defaultValue: 'Search assistants...' })}
+          />
+        </div>
+        <div className='flex max-h-280px flex-col gap-4px overflow-y-auto'>
+          {filteredDropdownAssistants.map((assistant) => {
+            const isSelected = selectedId === assistant.id;
+            const label = assistant.name_i18n?.[localeKey] || assistant.name;
+            return (
+              <Button
+                key={assistant.id}
+                data-testid={`assistant-dropdown-option-${assistant.id}`}
+                data-assistant-id={assistant.id}
+                data-assistant-backend={assistantRuntimeKey(assistant)}
+                data-assistant-selected={isSelected ? 'true' : 'false'}
+                type='text'
+                className={`!flex !h-auto !w-full !min-w-0 !items-center !justify-start !gap-8px !rounded-8px !px-10px !py-8px !text-13px ${
+                  isSelected ? 'font-600 !text-t-primary !bg-fill-2' : '!text-t-secondary hover:!text-t-primary'
+                }`}
+                onClick={() => {
+                  onSelectAssistant(assistant.id);
+                  setMoreVisible(false);
+                  setSearch('');
+                }}
+              >
+                {renderAssistantAvatar(assistant)}
+                <span className='min-w-0 flex-1 truncate text-left'>{label}</span>
+              </Button>
+            );
+          })}
+        </div>
+      </div>
+    );
+
+    return (
+      <Dropdown
+        trigger='click'
+        position='bl'
+        droplist={dropdownDroplist}
+        popupVisible={moreVisible}
+        onVisibleChange={setMoreVisible}
+      >
+        <Button
+          data-testid='assistant-dropdown-trigger'
+          data-assistant-id={selectedAssistant.id}
+          data-assistant-backend={assistantRuntimeKey(selectedAssistant)}
+          type='text'
+          className={`!inline-flex !h-32px !max-w-220px !min-w-0 !items-center !gap-6px !rounded-999px !border-none !px-10px !py-6px !text-13px !text-t-primary ${styles.assistantSelectorInactive}`}
+          style={{ background: 'var(--color-guid-agent-bar, var(--aou-2))' }}
+        >
+          {renderAssistantAvatar(selectedAssistant)}
+          <span className='min-w-0 truncate whitespace-nowrap'>{selectedAssistantLabel}</span>
+          <Down theme='outline' size={14} className='shrink-0' />
+        </Button>
+      </Dropdown>
+    );
+  }
 
   const overflowDroplist = (
     <div
