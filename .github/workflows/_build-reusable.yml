@@ -258,30 +258,41 @@ jobs:
           BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
           P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
           KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD || 'temp-keychain-password' }}
+          IDENTITY: ${{ secrets.IDENTITY }}
         run: |
-          if [ -n "$BUILD_CERTIFICATE_BASE64" ]; then
-            echo "Installing code signing certificate..."
+          set -euo pipefail
 
-            # Create certificate file
-            echo $BUILD_CERTIFICATE_BASE64 | base64 --decode > certificate.p12
+          : "${BUILD_CERTIFICATE_BASE64:?BUILD_CERTIFICATE_BASE64 secret is required for signed macOS builds}"
+          : "${P12_PASSWORD:?P12_PASSWORD secret is required for signed macOS builds}"
+          : "${KEYCHAIN_PASSWORD:?KEYCHAIN_PASSWORD secret is required for signed macOS builds}"
+          : "${IDENTITY:?IDENTITY secret is required for signed macOS builds}"
 
-            # Create temporary keychain
-            security create-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
-            security default-keychain -s build.keychain
-            security unlock-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
+          echo "Installing macOS Developer ID certificate..."
 
-            # Import certificate
-            security import certificate.p12 -k build.keychain -P "$P12_PASSWORD" -T /usr/bin/codesign
-            security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" build.keychain
+          CERTIFICATE_PATH="${RUNNER_TEMP}/certificate.p12"
+          KEYCHAIN_PATH="${RUNNER_TEMP}/build.keychain-db"
 
-            # Clean up certificate file
-            rm certificate.p12
+          printf '%s' "$BUILD_CERTIFICATE_BASE64" | base64 --decode > "$CERTIFICATE_PATH"
 
-            echo "Certificate imported successfully"
-          else
-            echo "No certificate provided - building unsigned application"
-            echo "To enable code signing, add BUILD_CERTIFICATE_BASE64 and P12_PASSWORD secrets"
+          security delete-keychain "$KEYCHAIN_PATH" 2>/dev/null || true
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security default-keychain -s "$KEYCHAIN_PATH"
+          security list-keychains -d user -s "$KEYCHAIN_PATH" $(security list-keychains -d user | tr -d '"')
+
+          security import "$CERTIFICATE_PATH" -k "$KEYCHAIN_PATH" -P "$P12_PASSWORD" -T /usr/bin/codesign -T /usr/bin/productsign
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+
+          rm -f "$CERTIFICATE_PATH"
+
+          security find-identity -v -p codesigning "$KEYCHAIN_PATH"
+          if ! security find-identity -v -p codesigning "$KEYCHAIN_PATH" | grep -F "$IDENTITY"; then
+            echo "::error title=Signing identity not found::Expected identity '$IDENTITY' was not found in the imported certificate."
+            exit 1
           fi
+
+          echo "macOS Developer ID certificate imported successfully"
 
       - name: Install Linux dependencies
         if: startsWith(matrix.platform, 'linux')
@@ -451,66 +462,56 @@ jobs:
           rm -f /tmp/*.dmg 2>/dev/null || true
           echo "Cleanup complete"
 
-      # macOS: Build with notarization - DMG failure = CI failure, notarization failure = warning only
-      # macOS: 构建并公证 - DMG 失败 = CI 失败，公证失败 = 仅警告
+      # macOS: Build with strict Developer ID signing and notarization.
+      # macOS: 构建并强制完成 Developer ID 签名和公证。
       - name: Build with electron-builder (macOS)
         if: startsWith(matrix.platform, 'macos')
         id: macos-build
         shell: bash
         run: |
-          set +e  # Handle errors manually
+          set -euo pipefail
 
-          # Run build command
           ${{ matrix.command }} 2>&1 | tee "${RUNNER_TEMP}/build.log"
-          BUILD_EXIT_CODE=${PIPESTATUS[0]}
 
-          # Check if DMG was created (most important artifact)
-          DMG_EXISTS=false
-          if ls out/*.dmg 1>/dev/null 2>&1; then
-            DMG_EXISTS=true
-            echo "✅ DMG created successfully"
+          APP_PATH="$(find out -maxdepth 3 -type d -name "*.app" | head -n 1)"
+          if [ -z "$APP_PATH" ]; then
+            echo "::error title=macOS app bundle missing::electron-builder did not produce a .app bundle."
+            exit 1
           fi
 
-          # If build succeeded completely
-          if [ $BUILD_EXIT_CODE -eq 0 ]; then
-            echo "✅ Build completed successfully"
-            echo "notarization_status=success" >> $GITHUB_OUTPUT
-            exit 0
+          if ! ls out/*.dmg 1>/dev/null 2>&1; then
+            echo "::error title=macOS DMG missing::electron-builder did not produce a DMG artifact."
+            exit 1
           fi
 
-          # Build failed - check if it's just notarization failure
-          if [ "$DMG_EXISTS" = true ]; then
-            # DMG exists but build failed - likely notarization issue
-            if grep -qiE "notariz|staple" "${RUNNER_TEMP}/build.log"; then
-              echo "⚠️ DMG created but notarization failed"
-              echo "notarization_status=failed" >> $GITHUB_OUTPUT
-              echo "::warning title=Notarization Failed::DMG was built and signed successfully, but **notarization failed**."
-              echo "" >> $GITHUB_STEP_SUMMARY
-              echo "## ⚠️ Notarization Warning" >> $GITHUB_STEP_SUMMARY
-              echo "DMG was built and signed successfully, but **notarization failed**." >> $GITHUB_STEP_SUMMARY
-              echo "" >> $GITHUB_STEP_SUMMARY
-              echo "Users may see Gatekeeper warnings when opening the app for the first time." >> $GITHUB_STEP_SUMMARY
-              echo "" >> $GITHUB_STEP_SUMMARY
-              echo "To fix: Right-click the app → Open → Open" >> $GITHUB_STEP_SUMMARY
-              exit 0  # Allow CI to continue
-            fi
+          if ! ls out/ZhanluWork-*-mac-${{ matrix.arch }}.zip 1>/dev/null 2>&1; then
+            echo "::error title=macOS zip missing::electron-builder did not produce the updater zip artifact."
+            exit 1
           fi
 
-          # DMG doesn't exist or other fatal error - fail CI
-          echo "❌ Build failed - DMG was not created"
-          echo "notarization_status=build_failed" >> $GITHUB_OUTPUT
-          exit 1
+          codesign --verify --deep --strict --verbose=2 "$APP_PATH"
+          xcrun stapler validate "$APP_PATH"
+          spctl --assess --type execute --verbose "$APP_PATH"
+
+          echo "notarization_status=success" >> $GITHUB_OUTPUT
+          echo "✅ macOS app is signed, notarized, stapled, and Gatekeeper accepted"
         env:
           NODE_OPTIONS: '--max-old-space-size=8192'
           AIONUI_BACKEND_RUN_ID: ${{ inputs.aioncore_run_id }}
           npm_config_arch: ${{ matrix.arch }}
           APP_ID: ${{ secrets.APP_ID }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
+          TEAM_ID: ${{ secrets.TEAM_ID }}
+          IDENTITY: ${{ secrets.IDENTITY }}
           appleId: ${{ secrets.APPLE_ID }}
           appleIdPassword: ${{ secrets.APPLE_ID_PASSWORD }}
           teamId: ${{ secrets.TEAM_ID }}
           identity: ${{ secrets.IDENTITY }}
           CSC_NAME: ${{ secrets.IDENTITY }}
           CSC_IDENTITY_AUTO_DISCOVERY: false
+          REQUIRE_MAC_SIGNING: true
+          REQUIRE_MAC_NOTARIZATION: true
           npm_config_cache: ${{ runner.temp }}/.npm
           ELECTRON_CACHE: ${{ runner.temp }}/.cache/electron
           ELECTRON_BUILDER_CACHE: ${{ runner.temp }}/.cache/electron-builder
@@ -563,10 +564,9 @@ jobs:
       - name: Clean up keychain (macOS only)
         if: startsWith(matrix.platform, 'macos') && always()
         run: |
-          if security list-keychains | grep -q build.keychain; then
-            security delete-keychain build.keychain
-            echo "Temporary keychain deleted"
-          fi
+          security delete-keychain "${RUNNER_TEMP}/build.keychain-db" 2>/dev/null || true
+          security delete-keychain build.keychain 2>/dev/null || true
+          echo "Temporary keychain deleted"
 
       # macOS 构建失败通知
       # macOS build failure notification
@@ -629,11 +629,11 @@ jobs:
 
       # Upload artifacts when:
       # - Build succeeded (all platforms)
-      # - macOS: notarization timeout but artifacts exist (handled in build step)
+      # - macOS: signing, notarization, stapling, and Gatekeeper checks all passed
       # - Windows: only if windows-build step succeeded
       # 上传产物条件：
       # - 构建成功（所有平台）
-      # - macOS: 公证超时但有产物（已在构建步骤中处理）
+      # - macOS: 签名、公证、票据附加和 Gatekeeper 检查均已通过
       # - Windows: 仅当 windows-build 步骤成功
       - name: Clean up non-installer artifacts
         if: >-
