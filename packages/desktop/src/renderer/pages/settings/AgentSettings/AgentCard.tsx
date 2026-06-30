@@ -9,6 +9,7 @@ import { Avatar, Button, Switch, Tag, Tooltip, Typography } from '@arco-design/w
 import { Delete, EditTwo, Robot } from '@icon-park/react';
 import { useTranslation } from 'react-i18next';
 import type { Assistant } from '@/common/types/agent/assistantTypes';
+import { resolveBuiltinAionrsManagedAgentName } from '@/renderer/utils/brand/builtinAgentBranding';
 import { resolveAgentAvatar, useAgentLogos } from '@/renderer/utils/model/agentLogo';
 import {
   type AgentManagementStatus,
@@ -101,6 +102,7 @@ const AgentCard: React.FC<AgentCardProps> = (props) => {
 
   const isCustom = props.type === 'custom';
   const isDisabled = isCustom && agent.enabled === false;
+  const displayName = resolveBuiltinAionrsManagedAgentName(agent) ?? agent.name;
   const diagnostics = formatManagedAgentDiagnosticMessage(t, agent);
   const displayStatus = resolveDisplayStatus(agent.status, agent.last_check_error_code);
 
@@ -126,7 +128,7 @@ const AgentCard: React.FC<AgentCardProps> = (props) => {
           style={{ flexShrink: 0, backgroundColor: avatar.kind === 'image' ? 'transparent' : 'var(--color-fill-2)' }}
         >
           {avatar.kind === 'image' ? (
-            <img src={avatar.value} alt={agent.name} className='h-full w-full object-contain' />
+            <img src={avatar.value} alt={displayName} className='h-full w-full object-contain' />
           ) : avatar.kind === 'emoji' ? (
             <span className='text-18px leading-none'>{avatar.value}</span>
           ) : (
@@ -135,7 +137,7 @@ const AgentCard: React.FC<AgentCardProps> = (props) => {
         </Avatar>
         <div className='min-w-0 flex-1'>
           <div className='flex min-w-0 items-center gap-8px'>
-            <Typography.Text className='truncate text-14px font-medium text-t-primary'>{agent.name}</Typography.Text>
+            <Typography.Text className='truncate text-14px font-medium text-t-primary'>{displayName}</Typography.Text>
             <Tag
               data-testid={`agent-row-status-${agent.id}`}
               size='small'

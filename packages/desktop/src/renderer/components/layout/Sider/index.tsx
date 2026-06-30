@@ -30,7 +30,7 @@ const Sider: React.FC<SiderProps> = ({ onSessionClick, collapsed = false }) => {
 
   const navigate = useNavigate();
   const { closePreview } = usePreviewContext();
-  const { logout, status } = useAuth();
+  const { logout, status, user } = useAuth();
   const { theme, setTheme } = useThemeContext();
   const [isBatchMode, setIsBatchMode] = useState(false);
   const { jobs: cronJobs } = useAllCronJobs();
@@ -94,10 +94,6 @@ const Sider: React.FC<SiderProps> = ({ onSessionClick, collapsed = false }) => {
     if (onSessionClick) {
       onSessionClick();
     }
-  };
-
-  const handleQuickThemeToggle = () => {
-    void setTheme(theme === 'dark' ? 'light' : 'dark');
   };
 
   const handleLogout = useCallback(async () => {
@@ -221,9 +217,10 @@ const Sider: React.FC<SiderProps> = ({ onSessionClick, collapsed = false }) => {
         isSettings={isSettings}
         collapsed={collapsed}
         theme={theme}
+        userName={user?.username ?? null}
         siderTooltipProps={siderTooltipProps}
         onSettingsClick={handleSettingsClick}
-        onThemeToggle={handleQuickThemeToggle}
+        onThemeChange={setTheme}
         showLogout={showLogout}
         onLogoutClick={handleLogout}
       />

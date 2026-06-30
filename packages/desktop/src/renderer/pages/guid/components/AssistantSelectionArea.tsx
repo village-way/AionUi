@@ -9,7 +9,8 @@ import { assistantRuntimeKey, type Assistant } from '@/common/types/agent/assist
 import { Down, Robot, Search } from '@icon-park/react';
 import { Button, Dropdown, Input } from '@arco-design/web-react';
 import React, { useMemo, useState } from 'react';
-import { resolveAssistantAvatar } from '@/renderer/utils/model/assistantAvatar';
+import { resolveAssistantDisplayAvatar } from '@/renderer/utils/model/assistantAvatar';
+import { resolveAssistantName } from '@/renderer/utils/model/assistantDisplay';
 import { useTranslation } from 'react-i18next';
 
 type AssistantSelectionAreaProps = {
@@ -59,7 +60,7 @@ const AssistantSelectionArea: React.FC<AssistantSelectionAreaProps> = ({
     const query = search.trim().toLowerCase();
     if (!query) return overflowAssistants;
     return overflowAssistants.filter((assistant) => {
-      const label = assistant.name_i18n?.[localeKey] || assistant.name;
+      const label = resolveAssistantName(assistant, localeKey, assistant.name);
       return label.toLowerCase().includes(query);
     });
   }, [localeKey, overflowAssistants, search]);
@@ -67,7 +68,7 @@ const AssistantSelectionArea: React.FC<AssistantSelectionAreaProps> = ({
     const query = search.trim().toLowerCase();
     if (!query) return enabledAssistants;
     return enabledAssistants.filter((assistant) => {
-      const label = assistant.name_i18n?.[localeKey] || assistant.name;
+      const label = resolveAssistantName(assistant, localeKey, assistant.name);
       return label.toLowerCase().includes(query);
     });
   }, [enabledAssistants, localeKey, search]);
@@ -75,7 +76,7 @@ const AssistantSelectionArea: React.FC<AssistantSelectionAreaProps> = ({
   if (enabledAssistants.length === 0) return null;
 
   const renderAssistantAvatar = (assistant: Assistant) => {
-    const avatar = resolveAssistantAvatar(assistant.avatar);
+    const avatar = resolveAssistantDisplayAvatar(assistant);
     return (
       <span className='inline-flex h-20px w-20px items-center justify-center overflow-hidden rounded-999px bg-fill-2'>
         {avatar.kind === 'image' ? (
@@ -91,7 +92,7 @@ const AssistantSelectionArea: React.FC<AssistantSelectionAreaProps> = ({
 
   const renderAssistantPill = (assistant: Assistant, testId: string) => {
     const isSelected = selectedId === assistant.id;
-    const label = assistant.name_i18n?.[localeKey] || assistant.name;
+    const label = resolveAssistantName(assistant, localeKey, assistant.name);
 
     return (
       <Button
@@ -120,7 +121,7 @@ const AssistantSelectionArea: React.FC<AssistantSelectionAreaProps> = ({
   };
 
   const selectedAssistant = enabledAssistants.find((assistant) => assistant.id === selectedId) ?? enabledAssistants[0];
-  const selectedAssistantLabel = selectedAssistant.name_i18n?.[localeKey] || selectedAssistant.name;
+  const selectedAssistantLabel = resolveAssistantName(selectedAssistant, localeKey, selectedAssistant.name);
 
   if (variant === 'dropdown') {
     const dropdownDroplist = (
@@ -140,7 +141,7 @@ const AssistantSelectionArea: React.FC<AssistantSelectionAreaProps> = ({
         <div className='flex max-h-280px flex-col gap-4px overflow-y-auto'>
           {filteredDropdownAssistants.map((assistant) => {
             const isSelected = selectedId === assistant.id;
-            const label = assistant.name_i18n?.[localeKey] || assistant.name;
+            const label = resolveAssistantName(assistant, localeKey, assistant.name);
             return (
               <Button
                 key={assistant.id}

@@ -4,6 +4,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import type { Assistant } from '@/common/types/agent/assistantTypes';
+import { resolveBuiltinAionrsLogoUrl } from '@/renderer/utils/brand/builtinAgentBranding';
 import { resolveBackendAssetUrl } from '@/renderer/utils/platform';
 
 export type AssistantAvatar =
@@ -22,6 +24,17 @@ export function isLikelyLocalFilePath(value: string): boolean {
 
   const unixLocalPathPrefixes = ['/Users/', '/home/', '/var/', '/tmp/', '/private/', '/Volumes/', '/mnt/'];
   return unixLocalPathPrefixes.some((prefix) => value.startsWith(prefix));
+}
+
+export function resolveAssistantDisplayAvatar(
+  assistant: Pick<Assistant, 'avatar' | 'agent' | 'source' | 'id'> | null | undefined
+): AssistantAvatar {
+  const brandedLogo = resolveBuiltinAionrsLogoUrl(assistant);
+  if (brandedLogo) {
+    return { kind: 'image', value: brandedLogo };
+  }
+
+  return resolveAssistantAvatar(assistant?.avatar);
 }
 
 export function resolveAssistantAvatar(avatar: string | undefined): AssistantAvatar {
