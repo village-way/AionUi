@@ -102,7 +102,7 @@ describe('AssistantSelectionArea', () => {
       />
     );
 
-    expect(screen.getByTestId('assistant-dropdown-trigger')).toHaveTextContent('Aion CLI');
+    expect(screen.getByTestId('assistant-dropdown-trigger')).toHaveTextContent('Zhanlu CLI');
     expect(screen.queryByTestId('preset-pill-bare-aionrs')).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByTestId('assistant-dropdown-trigger'));
@@ -131,7 +131,7 @@ describe('AssistantSelectionArea', () => {
         .getAllByRole('button')
         .slice(0, 4)
         .map((node) => node.textContent?.trim())
-    ).toEqual(['Early', 'Aion CLI', 'Mid', 'Writer']);
+    ).toEqual(['Early', 'Zhanlu CLI', 'Mid', 'Writer']);
   });
 
   it('keeps a selected overflow assistant visible in the top pill row', () => {

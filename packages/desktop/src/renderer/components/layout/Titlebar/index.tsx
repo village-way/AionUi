@@ -73,8 +73,8 @@ const FeedbackIcon: React.FC<{ size?: number; strokeWidth?: number }> = ({ size 
   </svg>
 );
 
-// Claude-desktop-style sidebar toggle icon: a rounded rectangle with a vertical divider
-// near the left edge, indicating a collapsible side panel. Rendered as inline SVG since
+// Claude-desktop-style panel toggle icon: a rounded rectangle with a vertical divider
+// near one edge, indicating a collapsible side panel. Rendered as inline SVG since
 // @icon-park doesn't ship this exact shape.
 //
 // Uses a 48-unit viewBox to match @icon-park's stroke scale, so passing the same
@@ -84,23 +84,30 @@ const FeedbackIcon: React.FC<{ size?: number; strokeWidth?: number }> = ({ size 
 // ArrowLeft/ArrowRight (which span y=12..36) so the sidebar icon reads a
 // touch larger. The rect remains centered at y=24, matching the arrows'
 // centerline so all three icons stay on the same visual baseline.
-const SidebarIcon: React.FC<{ size?: number; strokeWidth?: number }> = ({ size = 18, strokeWidth = 4 }) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox='0 0 48 48'
-    fill='none'
-    stroke='currentColor'
-    strokeWidth={strokeWidth}
-    strokeLinecap='round'
-    strokeLinejoin='round'
-    aria-hidden='true'
-    focusable='false'
-  >
-    <rect x='6' y='10' width='36' height='28' rx='5' />
-    <line x1='18' y1='10' x2='18' y2='38' />
-  </svg>
-);
+const PanelToggleIcon: React.FC<{ size?: number; strokeWidth?: number; side?: 'left' | 'right' }> = ({
+  size = 18,
+  strokeWidth = 4,
+  side = 'left',
+}) => {
+  const dividerX = side === 'left' ? 18 : 30;
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox='0 0 48 48'
+      fill='none'
+      stroke='currentColor'
+      strokeWidth={strokeWidth}
+      strokeLinecap='round'
+      strokeLinejoin='round'
+      aria-hidden='true'
+      focusable='false'
+    >
+      <rect x='6' y='10' width='36' height='28' rx='5' />
+      <line x1={dividerX} y1='10' x2={dividerX} y2='38' />
+    </svg>
+  );
+};
 
 const Titlebar: React.FC<TitlebarProps> = ({ workspaceAvailable }) => {
   const { t } = useTranslation();
@@ -139,8 +146,11 @@ const Titlebar: React.FC<TitlebarProps> = ({ workspaceAvailable }) => {
   const isMacRuntime = isDesktopRuntime && isMacOS();
   // Windows/Linux 显示自定义窗口按钮；macOS 在标题栏给工作区一个切换入口
   const showWindowControls = isDesktopRuntime && !isMacRuntime;
-  // WebUI 和 macOS 桌面都需要在标题栏放工作区开关
-  const showWorkspaceButton = workspaceAvailable && (!isDesktopRuntime || isMacRuntime);
+  // WebUI、macOS 桌面和移动端会话页都需要在标题栏放工作区开关
+  const showWorkspaceButton =
+    workspaceAvailable && (Boolean(layout?.isMobile) || !isDesktopRuntime || isMacRuntime);
+  // 移动端会话页用第三栏折叠按钮替代反馈入口，与左侧主侧栏开关对称
+  const showFeedbackButton = !(layout?.isMobile && workspaceAvailable);
 
   const workspaceTooltip = workspaceCollapsed
     ? t('common.expandMore', { defaultValue: 'Expand workspace' })
@@ -331,7 +341,7 @@ const Titlebar: React.FC<TitlebarProps> = ({ workspaceAvailable }) => {
             onClick={handleSiderToggle}
             aria-label={siderTooltip}
           >
-            <SidebarIcon size={iconSize} strokeWidth={desktopIconStroke} />
+            <PanelToggleIcon size={iconSize} strokeWidth={desktopIconStroke} side='left' />
           </button>
         )}
         {showHistoryNav && (
@@ -388,26 +398,31 @@ const Titlebar: React.FC<TitlebarProps> = ({ workspaceAvailable }) => {
       </div>
       <div ref={toolbarRef} className='app-titlebar__toolbar'>
         {layout?.isMobile && <div id='app-titlebar-actions-slot' className='app-titlebar__actions-slot' />}
-        <button
-          type='button'
-          className={classNames('app-titlebar__button', layout?.isMobile && 'app-titlebar__button--mobile')}
-          onClick={() => void openFeedback({ autoScreenshot: true, module: resolveFeedbackModule(location.pathname) })}
-          aria-label={feedbackTooltip}
-          title={feedbackTooltip}
-        >
-          <FeedbackIcon size={iconSize} strokeWidth={desktopIconStroke} />
-        </button>
+        {showFeedbackButton && (
+          <button
+            type='button'
+            className={classNames('app-titlebar__button', layout?.isMobile && 'app-titlebar__button--mobile')}
+            onClick={() => void openFeedback({ autoScreenshot: true, module: resolveFeedbackModule(location.pathname) })}
+            aria-label={feedbackTooltip}
+            title={feedbackTooltip}
+          >
+            <FeedbackIcon size={iconSize} strokeWidth={desktopIconStroke} />
+          </button>
+        )}
         {showWorkspaceButton && (
           <button
             type='button'
             className={classNames('app-titlebar__button', layout?.isMobile && 'app-titlebar__button--mobile')}
             onClick={handleWorkspaceToggle}
             aria-label={workspaceTooltip}
+            title={workspaceTooltip}
           >
-            {workspaceCollapsed ? (
-              <ExpandRight theme='outline' size={iconSize} fill='currentColor' />
+            {layout?.isMobile ? (
+              <PanelToggleIcon size={iconSize} strokeWidth={desktopIconStroke} side='right' />
+            ) : workspaceCollapsed ? (
+              <ExpandRight theme='outline' size={iconSize} fill='currentColor' strokeWidth={desktopIconStroke} />
             ) : (
-              <ExpandLeft theme='outline' size={iconSize} fill='currentColor' />
+              <ExpandLeft theme='outline' size={iconSize} fill='currentColor' strokeWidth={desktopIconStroke} />
             )}
           </button>
         )}

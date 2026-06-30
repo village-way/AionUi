@@ -19,6 +19,7 @@
  */
 
 import { ipcBridge } from '@/common';
+import { resolveBuiltinAionrsBackendLogo } from '@/renderer/utils/brand/builtinAgentBranding';
 import type { AssistantAvatar } from '@/renderer/utils/model/assistantAvatar';
 import {
   isBackendRelativeAssetPath,
@@ -93,6 +94,11 @@ function lookupBackendLogoValue(logos: AgentLogoMap, backend: string | undefined
 }
 
 function lookupBackendLogo(logos: AgentLogoMap, backend: string | undefined | null): string | null {
+  const brandedLogo = resolveBuiltinAionrsBackendLogo(backend);
+  if (brandedLogo) {
+    return normalizeLogoUrl(brandedLogo);
+  }
+
   const logo = lookupBackendLogoValue(logos, backend);
   return logo ? normalizeLogoUrl(logo) : null;
 }

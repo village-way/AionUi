@@ -5,8 +5,9 @@
  */
 
 import type { Assistant } from '@/common/types/agent/assistantTypes';
+import { resolveBuiltinAionrsDisplayName } from '@/renderer/utils/brand/builtinAgentBranding';
 
-type AssistantNameSource = Pick<Assistant, 'id' | 'name' | 'name_i18n'>;
+type AssistantNameSource = Pick<Assistant, 'id' | 'name' | 'name_i18n' | 'agent' | 'source'>;
 
 export function resolveAssistantName(
   assistant: AssistantNameSource | null | undefined,
@@ -15,6 +16,11 @@ export function resolveAssistantName(
 ): string {
   if (!assistant) {
     return fallback;
+  }
+
+  const brandedName = resolveBuiltinAionrsDisplayName(assistant);
+  if (brandedName) {
+    return brandedName;
   }
 
   const localizedName = assistant.name_i18n?.[localeKey] || assistant.name_i18n?.['en-US'];
