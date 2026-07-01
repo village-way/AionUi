@@ -26,7 +26,7 @@ const mocks = vi.hoisted(() => ({
 const searchParamsMock = vi.hoisted(() => ({
   current: new URLSearchParams(),
   setSearchParams: vi.fn(),
-  pathname: '/settings/capabilities',
+  pathname: '/capabilities',
   navigate: vi.fn(),
 }));
 
@@ -81,7 +81,7 @@ vi.mock('react-i18next', () => ({
   }),
 }));
 
-import SkillsHubSettings from '@/renderer/pages/settings/SkillsHubSettings';
+import SkillsHubSettings from '@/renderer/pages/capabilities/SkillsHubSettings';
 
 describe('SkillsHubSettings', () => {
   // The import action is now a TalkToButlerButton: open the menu, then click
@@ -95,7 +95,7 @@ describe('SkillsHubSettings', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     searchParamsMock.current = new URLSearchParams();
-    searchParamsMock.pathname = '/settings/capabilities';
+    searchParamsMock.pathname = '/capabilities';
     mocks.listAvailableSkills.mockResolvedValue([]);
     mocks.getSkillPaths.mockResolvedValue({
       user_skills_dir: '/tmp/user-skills',
@@ -132,7 +132,7 @@ describe('SkillsHubSettings', () => {
       })
     );
 
-    render(<SkillsHubSettings withWrapper={false} />);
+    render(<SkillsHubSettings />);
 
     await waitFor(() => expect(mocks.listAvailableSkills).toHaveBeenCalled());
     await triggerManualImport();
@@ -152,7 +152,7 @@ describe('SkillsHubSettings', () => {
       failed: [{ source_name: 'beta-skill', code: 'SKILL_IMPORT_FILE_TOO_LARGE' }],
     });
 
-    render(<SkillsHubSettings withWrapper={false} />);
+    render(<SkillsHubSettings />);
 
     await waitFor(() => expect(mocks.listAvailableSkills).toHaveBeenCalled());
     const initialFetchCount = mocks.listAvailableSkills.mock.calls.length;
@@ -167,7 +167,7 @@ describe('SkillsHubSettings', () => {
   });
 
   it('renders import history failure detail in the secondary view', async () => {
-    searchParamsMock.pathname = '/settings/capabilities/skills/import-history';
+    searchParamsMock.pathname = '/capabilities/skills/import-history';
     mocks.listSkillImportHistory.mockResolvedValue([
       {
         id: 'record-1',
@@ -183,7 +183,7 @@ describe('SkillsHubSettings', () => {
       },
     ]);
 
-    render(<SkillsHubSettings withWrapper={false} />);
+    render(<SkillsHubSettings />);
 
     await waitFor(() => expect(screen.getByTestId('skill-import-history-page')).toBeInTheDocument());
     expect(screen.getByText('parent-pack')).toBeInTheDocument();
@@ -192,14 +192,14 @@ describe('SkillsHubSettings', () => {
   });
 
   it('renders import history entry point when history is empty', async () => {
-    render(<SkillsHubSettings withWrapper={false} />);
+    render(<SkillsHubSettings />);
 
     await waitFor(() => expect(screen.getByTestId('btn-open-import-history')).toBeInTheDocument());
     expect(screen.queryByText('No import records yet.')).not.toBeInTheDocument();
   });
 
   it('renders import history as a secondary view without search or category filters', async () => {
-    searchParamsMock.pathname = '/settings/capabilities/skills/import-history';
+    searchParamsMock.pathname = '/capabilities/skills/import-history';
     mocks.listSkillImportHistory.mockResolvedValue([
       {
         id: 'record-1',
@@ -215,7 +215,7 @@ describe('SkillsHubSettings', () => {
       },
     ]);
 
-    render(<SkillsHubSettings withWrapper={false} />);
+    render(<SkillsHubSettings />);
 
     await waitFor(() => expect(screen.getByTestId('skill-import-history-page')).toBeInTheDocument());
     expect(screen.queryByTestId('my-skills-section')).not.toBeInTheDocument();
@@ -226,7 +226,7 @@ describe('SkillsHubSettings', () => {
   });
 
   it('shows concise repair instructions for failed import history records', async () => {
-    searchParamsMock.pathname = '/settings/capabilities/skills/import-history';
+    searchParamsMock.pathname = '/capabilities/skills/import-history';
     mocks.listSkillImportHistory.mockResolvedValue([
       {
         id: 'record-1',
@@ -242,7 +242,7 @@ describe('SkillsHubSettings', () => {
       },
     ]);
 
-    render(<SkillsHubSettings withWrapper={false} />);
+    render(<SkillsHubSettings />);
 
     await waitFor(() => expect(screen.getByTestId('skill-import-history-page')).toBeInTheDocument());
     expect(screen.getByText('Repair: remove the oversized file and import again')).toBeInTheDocument();
@@ -253,7 +253,7 @@ describe('SkillsHubSettings', () => {
   });
 
   it('does not expose technical error details in import history', async () => {
-    searchParamsMock.pathname = '/settings/capabilities/skills/import-history';
+    searchParamsMock.pathname = '/capabilities/skills/import-history';
     mocks.listSkillImportHistory.mockResolvedValue([
       {
         id: 'record-1',
@@ -269,7 +269,7 @@ describe('SkillsHubSettings', () => {
       },
     ]);
 
-    render(<SkillsHubSettings withWrapper={false} />);
+    render(<SkillsHubSettings />);
 
     await waitFor(() => expect(screen.getByTestId('skill-import-history-page')).toBeInTheDocument());
     expect(screen.queryByText('Technical info')).not.toBeInTheDocument();
@@ -277,7 +277,7 @@ describe('SkillsHubSettings', () => {
   });
 
   it('shows specific repair instructions for known non-size import errors', async () => {
-    searchParamsMock.pathname = '/settings/capabilities/skills/import-history';
+    searchParamsMock.pathname = '/capabilities/skills/import-history';
     mocks.listSkillImportHistory.mockResolvedValue([
       {
         id: 'record-zip',
@@ -290,7 +290,7 @@ describe('SkillsHubSettings', () => {
       },
     ]);
 
-    render(<SkillsHubSettings withWrapper={false} />);
+    render(<SkillsHubSettings />);
 
     await waitFor(() => expect(screen.getByTestId('skill-import-history-page')).toBeInTheDocument());
     expect(screen.getByText('Repair: create the zip again and import it')).toBeInTheDocument();
@@ -308,7 +308,7 @@ describe('SkillsHubSettings', () => {
       },
     ]);
 
-    render(<SkillsHubSettings withWrapper={false} />);
+    render(<SkillsHubSettings />);
 
     await waitFor(() => expect(screen.getByTestId('my-skill-card-sample-single')).toBeInTheDocument());
     expect(screen.getByText('Custom')).toBeInTheDocument();
@@ -341,7 +341,7 @@ describe('SkillsHubSettings', () => {
       },
     ]);
 
-    render(<SkillsHubSettings withWrapper={false} />);
+    render(<SkillsHubSettings />);
 
     await waitFor(() => expect(screen.getByTestId('auto-skills-section')).toBeInTheDocument());
     expect(screen.getByText('cron')).toBeInTheDocument();
@@ -350,14 +350,14 @@ describe('SkillsHubSettings', () => {
   });
 
   it('does not expose the local skills directory path on the skills page', async () => {
-    render(<SkillsHubSettings withWrapper={false} />);
+    render(<SkillsHubSettings />);
 
     await waitFor(() => expect(mocks.listAvailableSkills).toHaveBeenCalled());
     expect(screen.queryByText('/tmp/user-skills')).not.toBeInTheDocument();
   });
 
   it('renders import rules with server-provided size limits', async () => {
-    render(<SkillsHubSettings withWrapper={false} />);
+    render(<SkillsHubSettings />);
 
     await waitFor(() => expect(mocks.getSkillImportLimits).toHaveBeenCalled());
     expect(screen.getByText(/12 MB per file, 64 MB per skill/)).toBeInTheDocument();

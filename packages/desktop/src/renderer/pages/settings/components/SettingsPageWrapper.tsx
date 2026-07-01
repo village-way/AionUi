@@ -11,7 +11,6 @@ import {
   Computer,
   Earth,
   Info,
-  Lightning,
   LinkCloud,
   Puzzle,
   Robot,
@@ -47,12 +46,6 @@ export function getBuiltinSettingsNavItems(isDesktop: boolean, t: TranslateFn): 
       label: t('settings.agents', { defaultValue: 'Agents' }),
       icon: <Robot theme='outline' size='16' />,
       path: 'agent',
-    },
-    capabilities: {
-      id: 'capabilities',
-      label: t('settings.capabilities', { defaultValue: 'Capabilities' }),
-      icon: <Lightning theme='outline' size='16' />,
-      path: 'capabilities',
     },
     appearance: {
       id: 'appearance',

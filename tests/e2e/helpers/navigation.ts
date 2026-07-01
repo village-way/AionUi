@@ -11,12 +11,12 @@ import { channelItemById, webuiTabByKey } from './selectors';
 
 export const ROUTES = {
   guid: '#/guid',
+  capabilities: '#/capabilities',
   settings: {
     gemini: '#/settings/gemini',
     model: '#/settings/model',
     agent: '#/settings/agent',
     assistants: '#/settings/assistants',
-    capabilities: '#/settings/capabilities',
     display: '#/settings/display',
     webui: '#/settings/webui',
     system: '#/settings/system',
@@ -163,6 +163,11 @@ export async function resetGuidLastSelectedAgent(page: Page, _agentKey = 'aionrs
   await page.evaluate(() => {
     sessionStorage.removeItem('guid.openAssistantEditorIntent');
   });
+}
+
+/** Navigate to the capabilities (skills + tools) page. */
+export async function goToCapabilities(page: Page): Promise<void> {
+  await navigateWithRetry(page, ROUTES.capabilities);
 }
 
 /** Navigate to a settings tab. */

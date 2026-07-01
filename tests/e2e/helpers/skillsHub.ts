@@ -47,12 +47,12 @@ export interface ExternalSource {
 
 /**
  * Navigate to Skills Hub settings page using UI click
- * Note: /settings/skills-hub redirects to /settings/capabilities?tab=skills
+ * Note: /settings/skills-hub redirects to /capabilities?tab=skills
  * The Skills content should be visible by default as it's the first tab.
  */
 export async function goToSkillsHub(page: Page): Promise<void> {
   // Navigate to Capabilities settings page
-  await navigateTo(page, '#/settings/capabilities');
+  await navigateTo(page, '#/capabilities');
 
   // Wait a bit for React Router and Tabs component to initialize
   await page.waitForTimeout(500);

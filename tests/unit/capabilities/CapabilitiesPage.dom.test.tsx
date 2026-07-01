@@ -12,7 +12,7 @@ const { setSearchParamsMock, searchParamsMock, navigateMock, locationMock } = vi
   setSearchParamsMock: vi.fn(),
   searchParamsMock: { current: new URLSearchParams('tab=skills&highlight=sample') },
   navigateMock: vi.fn(),
-  locationMock: { pathname: '/settings/capabilities' },
+  locationMock: { pathname: '/capabilities' },
 }));
 
 vi.mock('react-i18next', () => ({
@@ -30,6 +30,10 @@ vi.mock('react-router-dom', async () => {
     useSearchParams: () => [searchParamsMock.current, setSearchParamsMock],
   };
 });
+
+vi.mock('@renderer/hooks/context/LayoutContext', () => ({
+  useLayoutContext: () => ({ isMobile: false }),
+}));
 
 vi.mock('@arco-design/web-react', () => {
   const Tabs = Object.assign(
@@ -60,7 +64,7 @@ vi.mock('@arco-design/web-react', () => {
   return { Tabs };
 });
 
-vi.mock('@/renderer/pages/settings/SkillsHubSettings', () => ({
+vi.mock('@/renderer/pages/capabilities/SkillsHubSettings', () => ({
   default: () => <div data-testid='skills-panel'>SkillsHubSettings</div>,
 }));
 
@@ -68,21 +72,17 @@ vi.mock('@/renderer/components/settings/SettingsModal/contents/ToolsModalContent
   default: () => <div data-testid='tools-panel'>ToolsModalContent</div>,
 }));
 
-vi.mock('@/renderer/pages/settings/components/SettingsPageWrapper', () => ({
-  default: ({ children }: { children: React.ReactNode }) => <div data-testid='settings-page-wrapper'>{children}</div>,
-}));
+import CapabilitiesPage from '@/renderer/pages/capabilities/CapabilitiesPage';
 
-import CapabilitiesSettings from '@/renderer/pages/settings/CapabilitiesSettings';
-
-describe('CapabilitiesSettings', () => {
+describe('CapabilitiesPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     searchParamsMock.current = new URLSearchParams('tab=skills&highlight=sample');
-    locationMock.pathname = '/settings/capabilities';
+    locationMock.pathname = '/capabilities';
   });
 
   it('does not rewrite the URL when clicking the already active tab', () => {
-    render(<CapabilitiesSettings />);
+    render(<CapabilitiesPage />);
 
     expect(screen.getByTestId('tabs')).toHaveAttribute('data-active-tab', 'skills');
 
@@ -92,18 +92,18 @@ describe('CapabilitiesSettings', () => {
   });
 
   it('renders the active tab directly from the latest URL query', () => {
-    const { rerender } = render(<CapabilitiesSettings />);
+    const { rerender } = render(<CapabilitiesPage />);
 
     expect(screen.getByTestId('tabs')).toHaveAttribute('data-active-tab', 'skills');
 
     searchParamsMock.current = new URLSearchParams('tab=tools&highlight=sample');
-    rerender(<CapabilitiesSettings />);
+    rerender(<CapabilitiesPage />);
 
     expect(screen.getByTestId('tabs')).toHaveAttribute('data-active-tab', 'tools');
   });
 
   it('preserves existing query parameters when switching tabs', () => {
-    render(<CapabilitiesSettings />);
+    render(<CapabilitiesPage />);
 
     fireEvent.click(screen.getByText('Tools'));
 
@@ -114,14 +114,14 @@ describe('CapabilitiesSettings', () => {
   });
 
   it('leaves the import history route when switching to tools', () => {
-    locationMock.pathname = '/settings/capabilities/skills/import-history';
-    render(<CapabilitiesSettings />);
+    locationMock.pathname = '/capabilities/skills/import-history';
+    render(<CapabilitiesPage />);
 
     expect(screen.getByTestId('tabs')).toHaveAttribute('data-active-tab', 'skills');
 
     fireEvent.click(screen.getByText('Tools'));
 
-    expect(navigateMock).toHaveBeenCalledWith('/settings/capabilities?tab=tools', { replace: true });
+    expect(navigateMock).toHaveBeenCalledWith('/capabilities?tab=tools', { replace: true });
     expect(setSearchParamsMock).not.toHaveBeenCalled();
   });
 });

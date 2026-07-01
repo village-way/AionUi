@@ -1,5 +1,5 @@
 import React, { Suspense } from 'react';
-import { HashRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { HashRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import AppLoader from '@renderer/components/layout/AppLoader';
 import { useAuth } from '@renderer/hooks/context/AuthContext';
 import { TEAM_MODE_ENABLED } from '@/common/config/constants';
@@ -8,7 +8,7 @@ const Guid = React.lazy(() => import('@renderer/pages/guid'));
 const AgentSettings = React.lazy(() => import('@renderer/pages/settings/AgentSettings'));
 const AgentRepairPage = React.lazy(() => import('@renderer/pages/settings/AgentSettings/AgentRepairPage'));
 const AssistantSettings = React.lazy(() => import('@renderer/pages/settings/AssistantSettings'));
-const CapabilitiesSettings = React.lazy(() => import('@renderer/pages/settings/CapabilitiesSettings'));
+const CapabilitiesPage = React.lazy(() => import('@renderer/pages/capabilities/CapabilitiesPage'));
 const AppearanceSettings = React.lazy(() => import('@renderer/pages/settings/AppearanceSettings'));
 const ModeSettings = React.lazy(() => import('@renderer/pages/settings/ModeSettings'));
 const SystemSettings = React.lazy(() => import('@renderer/pages/settings/SystemSettings'));
@@ -26,6 +26,15 @@ const withRouteFallback = (Component: React.LazyExoticComponent<React.ComponentT
     <Component />
   </Suspense>
 );
+
+const LegacyCapabilitiesRedirect: React.FC = () => {
+  const { pathname, search } = useLocation();
+  const target =
+    pathname === '/settings/capabilities/skills/import-history'
+      ? '/capabilities/skills/import-history'
+      : '/capabilities';
+  return <Navigate to={`${target}${search}`} replace />;
+};
 
 const ProtectedLayout: React.FC<{ layout: React.ReactElement }> = ({ layout }) => {
   const { status } = useAuth();
@@ -63,14 +72,12 @@ const PanelRoute: React.FC<{ layout: React.ReactElement }> = ({ layout }) => {
           <Route path='/settings/assistants' element={withRouteFallback(AssistantSettings)} />
           <Route path='/settings/agent' element={withRouteFallback(AgentSettings)} />
           <Route path='/settings/agent/:id/repair' element={withRouteFallback(AgentRepairPage)} />
-          <Route path='/settings/capabilities' element={withRouteFallback(CapabilitiesSettings)} />
-          <Route
-            path='/settings/capabilities/skills/import-history'
-            element={withRouteFallback(CapabilitiesSettings)}
-          />
-          {/* Legacy routes — redirect to the merged /settings/capabilities page */}
-          <Route path='/settings/skills-hub' element={<Navigate to='/settings/capabilities?tab=skills' replace />} />
-          <Route path='/settings/tools' element={<Navigate to='/settings/capabilities?tab=tools' replace />} />
+          <Route path='/capabilities' element={withRouteFallback(CapabilitiesPage)} />
+          <Route path='/capabilities/skills/import-history' element={withRouteFallback(CapabilitiesPage)} />
+          <Route path='/settings/capabilities' element={<LegacyCapabilitiesRedirect />} />
+          <Route path='/settings/capabilities/skills/import-history' element={<LegacyCapabilitiesRedirect />} />
+          <Route path='/settings/skills-hub' element={<Navigate to='/capabilities?tab=skills' replace />} />
+          <Route path='/settings/tools' element={<Navigate to='/capabilities?tab=tools' replace />} />
           <Route path='/settings/appearance' element={withRouteFallback(AppearanceSettings)} />
           <Route path='/settings/display' element={<Navigate to='/settings/appearance' replace />} />
           <Route path='/settings/webui' element={withRouteFallback(WebuiSettings)} />

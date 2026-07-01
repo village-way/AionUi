@@ -1,6 +1,7 @@
 export {
   navigateTo,
   goToGuid,
+  goToCapabilities,
   goToSettings,
   goToExtensionSettings,
   goToChannelsTab,

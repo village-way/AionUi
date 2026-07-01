@@ -106,7 +106,7 @@ const FileAttachButton: React.FC<FileAttachButtonProps> = ({
     setOpen(false);
     setSkillsOpen(false);
     setMcpOpen(false);
-    void navigate('/settings/capabilities?tab=tools');
+    void navigate('/capabilities?tab=tools');
   }, [navigate]);
 
   const handleLocalFileChange = useCallback(
