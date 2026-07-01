@@ -805,8 +805,6 @@ export type I18nKey =
   | 'google.mode.autoGemini25Desc'
   | 'google.mode.autoGemini3Desc'
   | 'google.mode.manualDesc'
-  | 'guid.assistantMenu'
-  | 'guid.builtinAssistantName'
   | 'guid.defaultPrompts.capabilities'
   | 'guid.defaultPrompts.skills'
   | 'guid.defaultPrompts.tools'

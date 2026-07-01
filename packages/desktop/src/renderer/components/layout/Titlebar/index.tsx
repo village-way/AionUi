@@ -147,8 +147,7 @@ const Titlebar: React.FC<TitlebarProps> = ({ workspaceAvailable }) => {
   // Windows/Linux 显示自定义窗口按钮；macOS 在标题栏给工作区一个切换入口
   const showWindowControls = isDesktopRuntime && !isMacRuntime;
   // WebUI、macOS 桌面和移动端会话页都需要在标题栏放工作区开关
-  const showWorkspaceButton =
-    workspaceAvailable && (Boolean(layout?.isMobile) || !isDesktopRuntime || isMacRuntime);
+  const showWorkspaceButton = workspaceAvailable && (Boolean(layout?.isMobile) || !isDesktopRuntime || isMacRuntime);
   // 移动端会话页用第三栏折叠按钮替代反馈入口，与左侧主侧栏开关对称
   const showFeedbackButton = !(layout?.isMobile && workspaceAvailable);
 
@@ -402,7 +401,9 @@ const Titlebar: React.FC<TitlebarProps> = ({ workspaceAvailable }) => {
           <button
             type='button'
             className={classNames('app-titlebar__button', layout?.isMobile && 'app-titlebar__button--mobile')}
-            onClick={() => void openFeedback({ autoScreenshot: true, module: resolveFeedbackModule(location.pathname) })}
+            onClick={() =>
+              void openFeedback({ autoScreenshot: true, module: resolveFeedbackModule(location.pathname) })
+            }
             aria-label={feedbackTooltip}
             title={feedbackTooltip}
           >

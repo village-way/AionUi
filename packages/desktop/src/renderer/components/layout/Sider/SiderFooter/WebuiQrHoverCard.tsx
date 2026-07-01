@@ -37,9 +37,7 @@ const WebuiQrHoverCard: React.FC<WebuiQrHoverCardProps> = ({ context }) => {
           <div className={styles.qrHoverCodePlaceholder}>{t('common.loading')}</div>
         ) : qrUrl ? (
           <div className={styles.qrHoverCodeSurface}>
-            <Suspense
-              fallback={<div className={styles.qrHoverCodePlaceholder}>{t('common.loading')}</div>}
-            >
+            <Suspense fallback={<div className={styles.qrHoverCodePlaceholder}>{t('common.loading')}</div>}>
               <QRCodeSVGLazy value={qrUrl} size={132} level='M' />
             </Suspense>
           </div>

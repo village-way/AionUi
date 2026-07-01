@@ -12,7 +12,7 @@ import {
 import type { Assistant } from '@/common/types/agent/assistantTypes';
 
 describe('assistantSelectUtils', () => {
-  it('localizes assistant option names for the active locale', () => {
+  it('uses the fork brand name for builtin AionRS assistants', () => {
     const bareAssistant = makeAssistant({
       id: 'bare-aionrs',
       name: 'Aion CLI',
@@ -23,7 +23,7 @@ describe('assistantSelectUtils', () => {
 
     const option = assistantToOption(bareAssistant, 'zh-CN');
 
-    expect(option.name).toBe('Aion 命令行');
+    expect(option.name).toBe('Zhanlu CLI');
   });
 
   it('preserves backend-provided team availability for selectable assistants', () => {

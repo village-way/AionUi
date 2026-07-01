@@ -76,7 +76,7 @@ const SiderFooter: React.FC<SiderFooterProps> = ({
   const settingsLabel = isSettings ? t('common.back') : t('common.settings');
 
   const handleOpenWebUI = useCallback(
-    (event: React.MouseEvent) => {
+    (event: Event) => {
       event.preventDefault();
       event.stopPropagation();
       void navigate('/settings/webui');
@@ -85,12 +85,7 @@ const SiderFooter: React.FC<SiderFooterProps> = ({
   );
 
   const webuiIconButton = (
-    <Button
-      type='text'
-      className={styles.webuiIconButton}
-      onClick={handleOpenWebUI}
-      aria-label={webuiTooltip}
-    >
+    <Button type='text' className={styles.webuiIconButton} onClick={handleOpenWebUI} aria-label={webuiTooltip}>
       <Iphone
         theme='outline'
         size={16}
@@ -101,7 +96,7 @@ const SiderFooter: React.FC<SiderFooterProps> = ({
     </Button>
   );
 
-  const toggleMenu = useCallback((event?: React.MouseEvent) => {
+  const toggleMenu = useCallback((event?: Event) => {
     event?.stopPropagation();
     setMenuVisible((visible) => !visible);
   }, []);
@@ -124,7 +119,7 @@ const SiderFooter: React.FC<SiderFooterProps> = ({
   };
 
   const handleSettingsIconClick = useCallback(
-    (event: React.MouseEvent) => {
+    (event: Event) => {
       event.preventDefault();
       event.stopPropagation();
       closeMenu();

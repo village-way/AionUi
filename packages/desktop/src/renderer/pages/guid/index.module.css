@@ -439,7 +439,6 @@
   color: var(--aou-9) !important;
 }
 
-
 @media (max-width: 768px) {
   .guidContainer {
     justify-content: flex-start;

@@ -86,7 +86,7 @@ describe('TeamCreateModal', () => {
     render(<TeamCreateModal visible onClose={vi.fn()} onCreated={vi.fn()} />);
 
     expect(screen.getByTestId('team-create-agent-option-bare-aionrs')).toBeInTheDocument();
-    expect(screen.getByText('Aion 命令行')).toBeInTheDocument();
+    expect(screen.getByText('Zhanlu CLI')).toBeInTheDocument();
     expect(screen.queryByText('Aion CLI')).not.toBeInTheDocument();
     expect(screen.getByTestId('team-create-agent-option-blocked-reviewer')).toBeInTheDocument();
     expect(screen.getByTestId('team-create-agent-option-remote-runner')).toBeInTheDocument();
@@ -121,7 +121,7 @@ describe('TeamCreateModal', () => {
     expect(payload.assistants[0]).toMatchObject({
       role: 'leader',
       assistant_id: 'bare-aionrs',
-      assistant_name: 'Aion 命令行',
+      assistant_name: 'Zhanlu CLI',
     });
     // Runtime backend / conversation type are derived server-side from the
     // assistant, so the create payload no longer carries legacy agent fields.
