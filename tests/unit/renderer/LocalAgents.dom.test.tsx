@@ -199,7 +199,7 @@ describe('LocalAgents', () => {
 
     // Proves L30 (useManagedAgents) ran and fed the derived lists.
     expect(useManagedAgents).toHaveBeenCalled();
-    expect(screen.getByText('Aion CLI')).toBeTruthy();
+    expect(screen.getByText('Zhanlu CLI')).toBeTruthy();
     expect(screen.getByText('Claude Code')).toBeTruthy();
     expect(screen.getByText('My Agent')).toBeTruthy();
   });
@@ -244,7 +244,7 @@ describe('LocalAgents', () => {
     render(<LocalAgents />);
 
     expect(screen.getByText('settings.agentManagement.refreshingStatuses')).toBeInTheDocument();
-    expect(screen.getByText('Aion CLI')).toBeInTheDocument();
+    expect(screen.getByText('Zhanlu CLI')).toBeInTheDocument();
   });
 
   it('renders official agents as diagnostics cards and filters out deprecated types', () => {
@@ -257,7 +257,7 @@ describe('LocalAgents', () => {
     render(<LocalAgents />);
 
     // Agent names render
-    expect(screen.getByText('Aion CLI')).toBeInTheDocument();
+    expect(screen.getByText('Zhanlu CLI')).toBeInTheDocument();
     expect(screen.getByText('Claude Code')).toBeInTheDocument();
     // Deprecated openclaw-gateway agent is filtered out
     expect(screen.queryByText('OpenClaw Gateway')).toBeNull();
@@ -361,7 +361,7 @@ describe('LocalAgents', () => {
       </MemoryRouter>
     );
 
-    expect(screen.getByText('Aion CLI')).toBeInTheDocument();
+    expect(screen.getByText('Zhanlu CLI')).toBeInTheDocument();
     expect(screen.queryByText('settings.agentManagement.localAgents')).toBeNull();
   });
 
