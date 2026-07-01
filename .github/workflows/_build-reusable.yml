@@ -242,7 +242,9 @@ jobs:
           done
 
           if [ "$missing" -ne 0 ]; then
-            exit 1
+            echo "::warning title=Sentry source map upload skipped::Sentry configuration is incomplete; continuing without desktop source map upload."
+            echo "SENTRY_UPLOAD_SOURCE_MAPS=false" >> "$GITHUB_ENV"
+            exit 0
           fi
 
           echo "Sentry source map upload configured for $SENTRY_ORG/$SENTRY_PROJECT ($SENTRY_RELEASE)"
