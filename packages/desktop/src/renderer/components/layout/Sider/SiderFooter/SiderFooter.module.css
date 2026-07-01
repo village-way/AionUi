@@ -2,8 +2,27 @@
   display: block;
 }
 
-.triggerButton {
+.footerBar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
   width: 100%;
+  min-height: 40px;
+  border-radius: 8px;
+}
+
+.footerBar:hover,
+.footerBarOpen {
+  background: var(--color-fill-3);
+}
+
+.footerBarCollapsed {
+  justify-content: center;
+}
+
+.triggerButton {
+  flex: 1 1 auto;
+  min-width: 0;
   height: 40px;
   padding: 0 8px !important;
   border: none !important;
@@ -12,12 +31,12 @@
   color: var(--color-text-1) !important;
 }
 
-.triggerButton:hover,
-.triggerButtonOpen {
-  background: var(--color-fill-3) !important;
+.triggerButton:hover {
+  background: transparent !important;
 }
 
 .triggerButtonCollapsed {
+  flex: 0 0 auto;
   height: 40px;
   padding: 0 !important;
 }
@@ -37,18 +56,31 @@
   line-height: 1;
 }
 
-.settingsIconButton {
+.settingsIconButton,
+.webuiIconButton {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   flex: 0 0 auto;
+  width: 34px;
+  height: 34px;
+  padding: 0 !important;
+  border: none !important;
+  border-radius: 8px !important;
+  background: transparent !important;
   color: var(--color-text-3) !important;
   line-height: 0;
 }
 
-.triggerButton:hover .settingsIconButton,
-.triggerButtonOpen .settingsIconButton {
+.footerBar:hover .settingsIconButton,
+.footerBarOpen .settingsIconButton,
+.settingsIconButton:hover {
   color: var(--color-text-2) !important;
+  background: transparent !important;
+}
+
+.webuiIconButton:hover {
+  background: transparent !important;
 }
 
 .popover :global(.arco-popover-content) {
@@ -154,4 +186,69 @@
 
 .logoutButton:hover {
   background: rgb(var(--danger-1)) !important;
+}
+
+.qrPopover :global(.arco-popover-content) {
+  padding: 0 !important;
+  border-radius: 12px !important;
+  border: 1px solid var(--aion-overlay-border);
+  background: var(--aion-overlay-bg);
+  box-shadow: var(--aion-overlay-shadow);
+}
+
+.qrPopover :global(.arco-popover-inner-content) {
+  padding: 0 !important;
+}
+
+.qrHoverCard {
+  width: 196px;
+  padding: 12px;
+}
+
+.qrHoverTitle {
+  color: var(--aion-overlay-text);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+}
+
+.qrHoverHint {
+  margin-top: 4px;
+  color: var(--color-text-3);
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.qrHoverCodeWrap {
+  margin-top: 12px;
+  padding: 10px;
+  border: 1px solid var(--color-border-2);
+  border-radius: 10px;
+  background: var(--color-fill-1);
+}
+
+.qrHoverCodeSurface {
+  padding: 8px;
+  border-radius: 8px;
+  background: var(--color-bg-white);
+}
+
+.qrHoverCodePlaceholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 132px;
+  height: 132px;
+  margin: 0 auto;
+  color: var(--color-text-3);
+  font-size: 13px;
+  text-align: center;
+}
+
+.qrHoverExpires {
+  margin-top: 8px;
+  color: var(--color-text-3);
+  font-size: 12px;
+  line-height: 18px;
+  text-align: center;
 }

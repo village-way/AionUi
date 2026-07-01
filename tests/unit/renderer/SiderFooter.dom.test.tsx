@@ -33,23 +33,41 @@ vi.mock('@arco-design/web-react', async () => {
     content?: React.ReactNode;
     popupVisible?: boolean;
     onVisibleChange?: (visible: boolean) => void;
+    trigger?: string;
   };
   type TooltipProps = {
     children?: React.ReactNode;
   };
 
+  const Popover = ({ children, content, popupVisible, onVisibleChange, trigger }: PopoverProps) => {
+    const isControlled = popupVisible !== undefined;
+    const [internalVisible, setInternalVisible] = React.useState(false);
+    const visible = isControlled ? popupVisible : internalVisible;
+
+    const setVisible = (next: boolean) => {
+      if (!isControlled) {
+        setInternalVisible(next);
+      }
+      onVisibleChange?.(next);
+    };
+
+    const handlers =
+      trigger === 'hover'
+        ? {
+            onMouseEnter: () => setVisible(true),
+            onMouseLeave: () => setVisible(false),
+          }
+        : {
+            onClick: () => setVisible(!visible),
+          };
+
+    return React.createElement('span', handlers, children, visible ? content : null);
+  };
+
   return {
     Button: ({ children, className, onClick, ...props }: ButtonProps) =>
       React.createElement('button', { ...props, type: 'button', className, onClick }, children),
-    Popover: ({ children, content, popupVisible = false, onVisibleChange }: PopoverProps) =>
-      React.createElement(
-        'span',
-        {
-          onClick: () => onVisibleChange?.(!popupVisible),
-        },
-        children,
-        popupVisible ? content : null
-      ),
+    Popover,
     Tooltip: ({ children }: TooltipProps) => React.createElement(React.Fragment, null, children),
   };
 });
@@ -63,7 +81,28 @@ vi.mock('@/renderer/services/i18n', () => ({
   },
 }));
 
+const navigateMock = vi.fn();
+vi.mock('react-router-dom', () => ({
+  useNavigate: () => navigateMock,
+}));
+
+vi.mock('@/renderer/hooks/system/useWebuiQuickStatus', () => ({
+  useWebuiQuickStatus: vi.fn(() => ({
+    iconColor: 'var(--color-text-4)',
+    status: 'checking',
+    statusLabel: 'settings.webui.starting',
+    tooltip: 'settings.webui · settings.webui.starting',
+    showQrHover: false,
+    qrContext: null,
+  })),
+}));
+
+vi.mock('@renderer/components/layout/Sider/SiderFooter/WebuiQrHoverCard', () => ({
+  default: () => <div data-testid='webui-qr-hover-card'>settings.webui.qrLogin</div>,
+}));
+
 import SiderFooter from '@renderer/components/layout/Sider/SiderFooter';
+import { useWebuiQuickStatus } from '@/renderer/hooks/system/useWebuiQuickStatus';
 
 const renderSiderFooter = (props: Partial<React.ComponentProps<typeof SiderFooter>> = {}) => {
   return render(
@@ -86,6 +125,15 @@ const renderSiderFooter = (props: Partial<React.ComponentProps<typeof SiderFoote
 describe('SiderFooter account menu', () => {
   beforeEach(() => {
     i18nServiceMocks.changeLanguageMock.mockClear();
+    navigateMock.mockClear();
+    vi.mocked(useWebuiQuickStatus).mockReturnValue({
+      iconColor: 'var(--color-text-4)',
+      status: 'checking',
+      statusLabel: 'settings.webui.starting',
+      tooltip: 'settings.webui · settings.webui.starting',
+      showQrHover: false,
+      qrContext: null,
+    });
   });
 
   afterEach(() => {
@@ -95,7 +143,7 @@ describe('SiderFooter account menu', () => {
   it('opens the compact account menu with real settings entries', () => {
     renderSiderFooter();
 
-    fireEvent.click(screen.getByLabelText('common.settings'));
+    fireEvent.click(screen.getAllByLabelText('common.settings')[0]);
 
     expect(screen.getByText('common.settings')).toBeInTheDocument();
     expect(screen.getByText('settings.language')).toBeInTheDocument();
@@ -106,7 +154,7 @@ describe('SiderFooter account menu', () => {
   it('closes the menu after opening settings', () => {
     const onSettingsClick = vi.fn();
     renderSiderFooter({ onSettingsClick });
-    fireEvent.click(screen.getByLabelText('common.settings'));
+    fireEvent.click(screen.getAllByLabelText('common.settings')[0]);
 
     const settingsButton = screen.getByText('common.settings').closest('button');
     expect(settingsButton).toBeTruthy();
@@ -118,7 +166,7 @@ describe('SiderFooter account menu', () => {
 
   it('opens the language flyout and changes language from the submenu', () => {
     renderSiderFooter();
-    fireEvent.click(screen.getByLabelText('common.settings'));
+    fireEvent.click(screen.getAllByLabelText('common.settings')[0]);
 
     const languageButton = screen.getByText('settings.language').closest('button');
     expect(languageButton).toBeTruthy();
@@ -137,7 +185,7 @@ describe('SiderFooter account menu', () => {
   it('opens the appearance flyout and changes theme from the submenu', () => {
     const onThemeChange = vi.fn();
     renderSiderFooter({ onThemeChange });
-    fireEvent.click(screen.getByLabelText('common.settings'));
+    fireEvent.click(screen.getAllByLabelText('common.settings')[0]);
 
     const appearanceButton = screen.getByText('settings.appearancePanel').closest('button');
     expect(appearanceButton).toBeTruthy();
@@ -152,7 +200,7 @@ describe('SiderFooter account menu', () => {
   it('shows logout only when available and invokes logout', () => {
     const onLogoutClick = vi.fn();
     renderSiderFooter({ onLogoutClick });
-    fireEvent.click(screen.getByLabelText('common.settings'));
+    fireEvent.click(screen.getAllByLabelText('common.settings')[0]);
 
     const logoutButton = screen.getByText('settings.googleLogout').closest('button');
     expect(logoutButton?.className).toContain('logoutButton');
@@ -163,7 +211,7 @@ describe('SiderFooter account menu', () => {
 
   it('hides logout when logout is not available', () => {
     renderSiderFooter({ showLogout: false, onLogoutClick: undefined });
-    fireEvent.click(screen.getByLabelText('common.settings'));
+    fireEvent.click(screen.getAllByLabelText('common.settings')[0]);
 
     expect(screen.queryByText('settings.googleLogout')).toBeNull();
   });
@@ -171,8 +219,50 @@ describe('SiderFooter account menu', () => {
   it('opens the menu while collapsed', () => {
     renderSiderFooter({ collapsed: true });
 
-    fireEvent.click(screen.getByLabelText('common.settings'));
+    fireEvent.click(screen.getAllByLabelText('common.settings')[0]);
 
     expect(screen.getByText('settings.language')).toBeInTheDocument();
+  });
+
+  it('navigates to webui settings when the remote connection button is clicked', () => {
+    renderSiderFooter();
+
+    fireEvent.click(screen.getByLabelText('settings.webui · settings.webui.starting'));
+
+    expect(navigateMock).toHaveBeenCalledWith('/settings/webui');
+  });
+
+  it('navigates to settings when the settings icon is clicked', () => {
+    const onSettingsClick = vi.fn();
+    renderSiderFooter({ onSettingsClick });
+
+    const settingsButtons = screen.getAllByLabelText('common.settings');
+    expect(settingsButtons.length).toBeGreaterThanOrEqual(2);
+    fireEvent.click(settingsButtons[1]);
+
+    expect(onSettingsClick).toHaveBeenCalledTimes(1);
+    expect(screen.queryByText('settings.language')).toBeNull();
+  });
+
+  it('shows the login QR hover card when WebUI is running with remote access', () => {
+    vi.mocked(useWebuiQuickStatus).mockReturnValue({
+      iconColor: 'rgb(var(--success-6))',
+      status: 'running',
+      statusLabel: 'settings.webui.running',
+      tooltip: 'settings.webui · settings.webui.running',
+      showQrHover: true,
+      qrContext: {
+        allowRemote: true,
+        networkUrl: 'http://192.168.1.10:3000',
+        localUrl: 'http://127.0.0.1:3000',
+        port: 3000,
+      },
+    });
+
+    renderSiderFooter();
+
+    fireEvent.mouseEnter(screen.getByLabelText('settings.webui · settings.webui.running'));
+
+    expect(screen.getByTestId('webui-qr-hover-card')).toBeInTheDocument();
   });
 });

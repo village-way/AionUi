@@ -134,31 +134,51 @@ describe('Layout sider brand Home button', () => {
     expect(navigate).not.toHaveBeenCalled();
   });
 
-  it('renders the wordmark as a non-actionable element in a non-settings route', () => {
+  it('renders the wordmark as a non-actionable element on the guid home route', () => {
     currentPathname = '/guid';
     renderLayout();
 
-    // No actionable role/label in chat routes.
     expect(screen.queryByLabelText(BACK_KEY)).toBeNull();
     const wordmark = screen.getByText('common.appBrand');
     fireEvent.click(wordmark);
     expect(navigate).not.toHaveBeenCalled();
   });
 
-  it('does not navigate when the wordmark is clicked in a non-settings route', () => {
+  it('navigates to /guid when the wordmark is clicked in a conversation route', () => {
     currentPathname = '/conversation/xyz';
     renderLayout();
 
-    fireEvent.click(screen.getByText('common.appBrand'));
-    expect(navigate).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByLabelText(BACK_KEY));
+    expect(navigate).toHaveBeenCalledWith('/guid');
   });
 
-  it('clicking the logo icon counts toward the devtools easter-egg and never navigates', () => {
+  it('navigates to /guid when the logo icon is clicked in a conversation route', () => {
+    currentPathname = '/conversation/xyz';
+    const { container } = renderLayout();
+
+    const icon = container.querySelector('.brand-mark') as HTMLElement;
+    expect(icon).toBeTruthy();
+    fireEvent.click(icon);
+    expect(navigate).toHaveBeenCalledWith('/guid');
+    expect(openDevTools).not.toHaveBeenCalled();
+  });
+
+  it('navigates home when the logo icon is clicked in a settings route', () => {
     currentPathname = '/settings/about';
     sessionStorage.setItem('aion:last-non-settings-path', '/conversation/abc');
     const { container } = renderLayout();
 
-    // The icon is the brand-mark container, separate from the wordmark.
+    const icon = container.querySelector('.brand-mark') as HTMLElement;
+    expect(icon).toBeTruthy();
+    fireEvent.click(icon);
+    expect(navigate).toHaveBeenCalledWith('/conversation/abc');
+    expect(openDevTools).not.toHaveBeenCalled();
+  });
+
+  it('clicking the logo icon on guid home counts toward the devtools easter-egg and never navigates', () => {
+    currentPathname = '/guid';
+    const { container } = renderLayout();
+
     const icon = container.querySelector('.brand-mark') as HTMLElement;
     expect(icon).toBeTruthy();
     for (let i = 0; i < 4; i++) fireEvent.click(icon);
