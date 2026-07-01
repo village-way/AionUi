@@ -124,26 +124,35 @@ const Layout: React.FC<{
   }, [navigate]);
   const location = useLocation();
   const { t } = useTranslation();
-  // The "AionUi" wordmark acts as Home / Back-to-Chat, but only from settings routes.
-  // In non-settings routes the user is already "home", so it is a no-op (and not actionable).
   const isSettingsRoute = location.pathname.startsWith('/settings');
-  // Only wired to the wordmark in the isSettingsRoute branch below, so the
-  // "no-op outside settings" contract is enforced structurally — no internal
-  // route guard needed (the chat-route wordmark is a plain, inert div).
+  const isOnGuidHome = location.pathname === '/guid';
+  // Brand icon and wordmark return to chat home from any non-guid route.
+  const isBrandHomeActive = !isOnGuidHome;
   const handleBrandHome = useCallback(() => {
-    // Mirror Titlebar's handleBackToChat convention: return to the last non-settings path.
-    let target: string | null = null;
-    try {
-      target = sessionStorage.getItem('aion:last-non-settings-path');
-    } catch {
-      // ignore
-    }
-    if (target && !target.startsWith('/settings')) {
-      void navigate(target);
+    if (isSettingsRoute) {
+      // Mirror Titlebar's handleBackToChat convention: return to the last non-settings path.
+      let target: string | null = null;
+      try {
+        target = sessionStorage.getItem('aion:last-non-settings-path');
+      } catch {
+        // ignore
+      }
+      if (target && !target.startsWith('/settings')) {
+        void navigate(target);
+        return;
+      }
+      void navigate('/guid');
       return;
     }
     void navigate('/guid');
-  }, [navigate]);
+  }, [isSettingsRoute, navigate]);
+  const handleLogoClick = useCallback(() => {
+    if (isBrandHomeActive) {
+      handleBrandHome();
+      return;
+    }
+    onClick();
+  }, [handleBrandHome, isBrandHomeActive, onClick]);
   const workspaceAvailable =
     location.pathname.startsWith('/conversation/') || (TEAM_MODE_ENABLED && location.pathname.startsWith('/team/'));
   const collapsedRef = useRef(collapsed);
@@ -354,10 +363,10 @@ const Layout: React.FC<{
                   size={collapsed ? 'sm' : 'md'}
                   showTitle={!collapsed}
                   titleClassName='collapsed-hidden text-t-primary'
-                  onLogoClick={onClick}
-                  titleInteractive={isSettingsRoute}
-                  onTitleClick={isSettingsRoute ? handleBrandHome : undefined}
-                  titleTooltip={isSettingsRoute ? t('common.back', { defaultValue: 'Back to Chat' }) : undefined}
+                  onLogoClick={handleLogoClick}
+                  titleInteractive={isBrandHomeActive}
+                  onTitleClick={isBrandHomeActive ? handleBrandHome : undefined}
+                  titleTooltip={isBrandHomeActive ? t('common.back', { defaultValue: 'Back to Chat' }) : undefined}
                 />
                 {isMobile && !collapsed && (
                   <button

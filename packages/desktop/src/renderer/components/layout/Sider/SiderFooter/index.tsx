@@ -5,13 +5,16 @@
  */
 
 import type { ThemeAppearance } from '@/common/theme/types';
+import { useWebuiQuickStatus } from '@/renderer/hooks/system/useWebuiQuickStatus';
 import { changeLanguage, normalizeLanguageCode } from '@/renderer/services/i18n';
 import { Button, Popover, Tooltip } from '@arco-design/web-react';
 import type { SiderTooltipProps } from '@renderer/utils/ui/siderTooltip';
-import { ArrowCircleLeft, CheckOne, Contrast, Earth, Logout, Right, SettingTwo } from '@icon-park/react';
+import { ArrowCircleLeft, CheckOne, Contrast, Earth, Iphone, Logout, Right, SettingTwo } from '@icon-park/react';
 import classNames from 'classnames';
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
+import WebuiQrHoverCard from './WebuiQrHoverCard';
 import styles from './SiderFooter.module.css';
 
 type LanguageOption = {
@@ -63,12 +66,45 @@ const SiderFooter: React.FC<SiderFooterProps> = ({
   onLogoutClick,
 }) => {
   const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
+  const { iconColor: webuiIconColor, tooltip: webuiTooltip, showQrHover, qrContext } = useWebuiQuickStatus();
   const [menuVisible, setMenuVisible] = useState(false);
   const [activeFlyout, setActiveFlyout] = useState<FlyoutKey | null>(null);
 
   const displayName = userName?.trim() || t('common.appBrand');
   const currentLanguage = normalizeLanguageCode(i18n.language);
   const settingsLabel = isSettings ? t('common.back') : t('common.settings');
+
+  const handleOpenWebUI = useCallback(
+    (event: React.MouseEvent) => {
+      event.preventDefault();
+      event.stopPropagation();
+      void navigate('/settings/webui');
+    },
+    [navigate]
+  );
+
+  const webuiIconButton = (
+    <Button
+      type='text'
+      className={styles.webuiIconButton}
+      onClick={handleOpenWebUI}
+      aria-label={webuiTooltip}
+    >
+      <Iphone
+        theme='outline'
+        size={16}
+        fill='currentColor'
+        className='block leading-none shrink-0'
+        style={{ color: webuiIconColor, lineHeight: 0 }}
+      />
+    </Button>
+  );
+
+  const toggleMenu = useCallback((event?: React.MouseEvent) => {
+    event?.stopPropagation();
+    setMenuVisible((visible) => !visible);
+  }, []);
 
   const selectedLanguageLabel = useMemo(() => {
     return LANGUAGE_OPTIONS.find((item) => item.value === currentLanguage)?.label ?? currentLanguage;
@@ -86,6 +122,16 @@ const SiderFooter: React.FC<SiderFooterProps> = ({
     closeMenu();
     onSettingsClick();
   };
+
+  const handleSettingsIconClick = useCallback(
+    (event: React.MouseEvent) => {
+      event.preventDefault();
+      event.stopPropagation();
+      closeMenu();
+      onSettingsClick();
+    },
+    [onSettingsClick]
+  );
 
   const handleThemeChange = (value: ThemeAppearance) => {
     closeMenu();
@@ -232,38 +278,67 @@ const SiderFooter: React.FC<SiderFooterProps> = ({
         className={styles.popover}
       >
         <span className={styles.triggerWrap}>
-          <Tooltip {...siderTooltipProps} content={settingsLabel} position='right'>
-            <Button
-              type='text'
-              className={classNames(
-                styles.triggerButton,
-                collapsed && styles.triggerButtonCollapsed,
-                menuVisible && styles.triggerButtonOpen,
-                isMobile && 'sider-footer-btn-mobile'
-              )}
-              aria-label={settingsLabel}
-            >
-              <span className='flex w-full min-w-0 items-center gap-8px'>
-                <span className={styles.avatar}>{getInitial(displayName)}</span>
-                {!collapsed && (
-                  <>
+          <div
+            className={classNames(
+              styles.footerBar,
+              collapsed && styles.footerBarCollapsed,
+              menuVisible && styles.footerBarOpen,
+              isMobile && 'sider-footer-btn-mobile'
+            )}
+          >
+            <Tooltip {...siderTooltipProps} content={settingsLabel} position='right'>
+              <Button
+                type='text'
+                className={classNames(styles.triggerButton, collapsed && styles.triggerButtonCollapsed)}
+                onClick={toggleMenu}
+                aria-label={settingsLabel}
+              >
+                <span className='flex w-full min-w-0 items-center gap-8px'>
+                  <span className={styles.avatar}>{getInitial(displayName)}</span>
+                  {!collapsed && (
                     <span className='min-w-0 flex-1 truncate text-left text-14px font-[500] leading-20px text-t-primary'>
                       {displayName}
                     </span>
-                    <span className={styles.settingsIconButton}>
-                      <SettingTwo
-                        theme='outline'
-                        size='16'
-                        fill='currentColor'
-                        className='block leading-none shrink-0'
-                        style={{ lineHeight: 0 }}
-                      />
-                    </span>
-                  </>
+                  )}
+                </span>
+              </Button>
+            </Tooltip>
+            {!collapsed && (
+              <>
+                {showQrHover && qrContext ? (
+                  <Popover
+                    trigger='hover'
+                    position='rt'
+                    className={styles.qrPopover}
+                    content={<WebuiQrHoverCard context={qrContext} />}
+                    unmountOnExit
+                  >
+                    {webuiIconButton}
+                  </Popover>
+                ) : (
+                  <Tooltip {...siderTooltipProps} content={webuiTooltip} position='right'>
+                    {webuiIconButton}
+                  </Tooltip>
                 )}
-              </span>
-            </Button>
-          </Tooltip>
+                <Tooltip {...siderTooltipProps} content={settingsLabel} position='right'>
+                  <Button
+                    type='text'
+                    className={styles.settingsIconButton}
+                    onClick={handleSettingsIconClick}
+                    aria-label={settingsLabel}
+                  >
+                    <SettingTwo
+                      theme='outline'
+                      size={16}
+                      fill='currentColor'
+                      className='block leading-none shrink-0'
+                      style={{ lineHeight: 0 }}
+                    />
+                  </Button>
+                </Tooltip>
+              </>
+            )}
+          </div>
         </span>
       </Popover>
     </div>
