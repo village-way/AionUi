@@ -9,23 +9,19 @@ function readRepoFile(path: string): string {
 }
 
 describe('Sentry release CI configuration', () => {
-  it('fails desktop builds early when Sentry upload credentials are invalid', () => {
+  it('does not require Sentry credentials in CI by default', () => {
     const workflow = readRepoFile('.github/workflows/_build-reusable.yml');
 
-    expect(workflow).toContain('Validate Sentry source map upload configuration');
-    expect(workflow).toContain("matrix.platform == 'linux-x64'");
-    expect(workflow).toContain('SENTRY_AUTH_TOKEN SENTRY_ORG SENTRY_PROJECT SENTRY_RELEASE');
-    expect(workflow).toContain('SENTRY_RELEASE');
+    expect(workflow).not.toContain('Validate Sentry source map upload configuration');
+    expect(workflow).not.toContain('Configure Sentry source map upload owner');
+    expect(workflow).not.toContain('SENTRY_UPLOAD_SOURCE_MAPS=true');
   });
 
-  it('uploads source maps from one deterministic desktop build only', () => {
-    const workflow = readRepoFile('.github/workflows/_build-reusable.yml');
+  it('uploads source maps only when explicitly opted in', () => {
     const viteConfig = readRepoFile('packages/desktop/electron.vite.config.ts');
 
-    expect(workflow).toContain('Configure Sentry source map upload owner');
-    expect(workflow).toContain('SENTRY_UPLOAD_SOURCE_MAPS=true');
-    expect(workflow).toContain('SENTRY_UPLOAD_SOURCE_MAPS=false');
     expect(viteConfig).toContain("process.env.SENTRY_UPLOAD_SOURCE_MAPS === 'true'");
+    expect(viteConfig).toContain('!!process.env.SENTRY_AUTH_TOKEN');
   });
 
   it('uses an explicit Sentry release name instead of plugin defaults', () => {

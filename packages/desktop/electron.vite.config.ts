@@ -68,9 +68,7 @@ const mainAliases = {
 export default defineConfig(({ mode }) => {
   const isDevelopment = mode === 'development';
   const enableSentrySourceMaps =
-    !isDevelopment &&
-    !!process.env.SENTRY_AUTH_TOKEN &&
-    (process.env.CI !== 'true' || process.env.SENTRY_UPLOAD_SOURCE_MAPS === 'true');
+    !isDevelopment && process.env.SENTRY_UPLOAD_SOURCE_MAPS === 'true' && !!process.env.SENTRY_AUTH_TOKEN;
   const sentryReleaseName = process.env.SENTRY_RELEASE ?? `v${rootPackageJson.version}`;
 
   const sentryPluginOptions = {
