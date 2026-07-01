@@ -4,7 +4,6 @@ import { Delete, Lightning, Puzzle, Search, Refresh } from '@icon-park/react';
 import React, { useCallback, useEffect, useRef, useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
-import SettingsPageWrapper from './components/SettingsPageWrapper';
 import TalkToButlerButton from '@/renderer/components/base/TalkToButlerButton';
 import { buildSkillImportNotice, getSkillImportErrorMessage } from './skillImportMessages';
 
@@ -117,20 +116,14 @@ const buildImportHistoryGroups = (records: SkillImportRecord[]): SkillImportHist
 const hasImportedRecords = (group: SkillImportHistoryGroup): boolean =>
   group.records.some((r) => r.status !== 'failed');
 
-interface SkillsHubSettingsProps {
-  /** When false, renders without SettingsPageWrapper — useful for embedding in a tab */
-  withWrapper?: boolean;
-}
-
-const SkillsHubSettings: React.FC<SkillsHubSettingsProps> = ({ withWrapper = true }) => {
+const SkillsHubSettings: React.FC = () => {
   const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const highlightName = searchParams.get('highlight');
   const isImportHistoryView =
-    location.pathname === '/settings/capabilities/skills/import-history' ||
-    searchParams.get('view') === 'import-history';
+    location.pathname === '/capabilities/skills/import-history' || searchParams.get('view') === 'import-history';
   const [highlightedSkill, setHighlightedSkill] = useState<string | null>(null);
   const skillRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const [loading, setLoading] = useState(false);
@@ -199,11 +192,11 @@ const SkillsHubSettings: React.FC<SkillsHubSettingsProps> = ({ withWrapper = tru
   }, [highlightName, loading, availableSkills, setSearchParams]);
 
   const showImportHistory = useCallback(() => {
-    void navigate('/settings/capabilities/skills/import-history');
+    void navigate('/capabilities/skills/import-history');
   }, [navigate]);
 
   const showSkillList = useCallback(() => {
-    void navigate('/settings/capabilities?tab=skills');
+    void navigate('/capabilities?tab=skills');
   }, [navigate]);
 
   const handleImport = async (skillPath: string) => {
@@ -782,7 +775,7 @@ const SkillsHubSettings: React.FC<SkillsHubSettingsProps> = ({ withWrapper = tru
     </div>
   );
 
-  return withWrapper ? <SettingsPageWrapper>{mainContent}</SettingsPageWrapper> : mainContent;
+  return mainContent;
 };
 
 export default SkillsHubSettings;

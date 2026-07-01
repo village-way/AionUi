@@ -9,7 +9,7 @@ import type {
   SkillInfo,
 } from '@/renderer/pages/settings/AssistantSettings/types';
 import { ensureBackendMcpCatalog } from '@/renderer/hooks/mcp/catalog';
-import { getSkillImportErrorMessage } from '@/renderer/pages/settings/skillImportMessages';
+import { getSkillImportErrorMessage } from '@/renderer/pages/capabilities/skillImportMessages';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { mutate as swrMutate } from 'swr';

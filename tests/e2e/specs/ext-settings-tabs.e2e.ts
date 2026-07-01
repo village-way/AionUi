@@ -2,6 +2,7 @@ import type { Page } from '@playwright/test';
 import { test, expect } from '../fixtures';
 import {
   goToSettings,
+  goToCapabilities,
   goToExtensionSettings,
   waitForSettle,
   takeScreenshot,
@@ -65,18 +66,18 @@ test.describe('Extension: Settings Tabs Discovery', () => {
 });
 
 test.describe('Extension: Settings Tabs Position Anchoring', () => {
-  test('tab with anchor "capabilities/after" appears after Capabilities in sidebar', async ({ page }) => {
-    await goToSettings(page, 'capabilities');
+  test('tab anchored to tools (legacy capabilities host) falls back before System in sidebar', async ({ page }) => {
+    await goToSettings(page, 'system');
     await waitForExtensionSettingsTabs(page);
 
     const siderItemIds = await getSiderItemIds(page);
 
-    const capabilitiesIdx = siderItemIds.indexOf('capabilities');
+    const systemIdx = siderItemIds.indexOf('system');
     const e2eIdx = siderItemIds.indexOf(EXT_E2E_SETTINGS_ID);
 
-    expect(capabilitiesIdx).toBeGreaterThanOrEqual(0);
+    expect(systemIdx).toBeGreaterThanOrEqual(0);
     expect(e2eIdx).toBeGreaterThanOrEqual(0);
-    expect(e2eIdx).toBeGreaterThan(capabilitiesIdx);
+    expect(e2eIdx).toBeLessThan(systemIdx);
   });
 
   test('tab with anchor "about/before" appears before About in sidebar', async ({ page }) => {
@@ -136,7 +137,7 @@ test.describe('Extension: Settings Tabs Navigation', () => {
     await goToExtensionSettings(page, EXT_E2E_SETTINGS_ID);
     await waitForSettle(page);
 
-    await goToSettings(page, 'capabilities');
+    await goToCapabilities(page);
     await waitForSettle(page);
 
     await goToExtensionSettings(page, EXT_E2E_SETTINGS_ID);

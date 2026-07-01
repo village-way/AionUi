@@ -9,12 +9,11 @@
 import { test, expect } from '../fixtures';
 import {
   goToGuid,
-  goToSettings,
+  goToCapabilities,
   expectBodyContainsAny,
   expectUrlContains,
   takeScreenshot,
   AGENT_PILL,
-  settingsSiderItemById,
 } from '../helpers';
 
 test.describe('Agent Diagnostics', () => {
@@ -47,9 +46,9 @@ test.describe('Agent Diagnostics', () => {
   });
 
   test('MCP tools page has server management UI', async ({ page }) => {
-    await goToSettings(page, 'capabilities');
+    await goToCapabilities(page);
     await expectUrlContains(page, 'capabilities');
-    await expect(page.locator(settingsSiderItemById('capabilities')).first()).toBeVisible({ timeout: 8_000 });
+    await expect(page.locator('[data-testid="sider-capabilities-entry"]').first()).toBeVisible({ timeout: 8_000 });
     await expectBodyContainsAny(page, ['MCP', 'mcp', 'Server', 'server', '工具', '配置', '添加', 'Add']);
   });
 

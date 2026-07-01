@@ -1468,11 +1468,11 @@ test.describe('Conversation Full Cycle', () => {
 
     // Should navigate to capabilities page with skills tab
     await page
-      .waitForFunction(() => window.location.hash.includes('/settings/capabilities'), { timeout: 10_000 })
+      .waitForFunction(() => window.location.hash.includes('/capabilities'), { timeout: 10_000 })
       .catch(() => {});
 
     const url = page.url();
-    expect(url).toContain('/settings/capabilities');
+    expect(url).toContain('/capabilities');
     expect(url).toContain('tab=skills');
     // Note: highlight= param is consumed by SkillsHubSettings and then cleared
     // from the URL, so we verify the skill name is visible on the page instead.

@@ -9,7 +9,6 @@ import {
   Computer,
   Earth,
   Info,
-  Lightning,
   LinkCloud,
   Puzzle,
   Robot,
@@ -28,7 +27,6 @@ export const BUILTIN_TAB_IDS = [
   'agent',
   'model',
   'assistants',
-  'capabilities',
   'appearance',
   'webui',
   'pet',
@@ -94,12 +92,6 @@ const SettingsSider: React.FC<{ collapsed?: boolean; tooltipEnabled?: boolean }>
         label: t('settings.agents', { defaultValue: 'Agents' }),
         icon: <Speed />,
         path: 'agent',
-      },
-      capabilities: {
-        id: 'capabilities',
-        label: t('settings.capabilities', { defaultValue: 'Capabilities' }),
-        icon: <Lightning />,
-        path: 'capabilities',
       },
       appearance: { id: 'appearance', label: t('settings.appearancePanel'), icon: <Computer />, path: 'appearance' },
       webui: {
