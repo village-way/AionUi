@@ -8,6 +8,7 @@ import { renderHook } from '@testing-library/react';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import type { TChatConversation } from '@/common/config/storage';
 import { resolveAssistantConfigId, usePresetAssistantInfo } from '@/renderer/hooks/agent/usePresetAssistantInfo';
+import { BUILTIN_AIONRS_DISPLAY_NAME, BUILTIN_AIONRS_LOGO } from '@/renderer/utils/brand/builtinAgentBranding';
 
 const useSWRMock = vi.fn();
 let currentLanguage = 'en-US';
@@ -173,6 +174,113 @@ describe('usePresetAssistantInfo', () => {
       isEmoji: false,
       backend: 'gemini',
       assistantId: 'assistant-social',
+    });
+  });
+
+  it('uses Zhanlu branding for generated aionrs snapshots with stale local avatars', () => {
+    useSWRMock.mockImplementation((key: unknown) => {
+      if (key === 'assistants') return { data: [], isLoading: true };
+      if (key === 'extensions.acpAdapters') return { data: [], isLoading: false };
+      return { data: undefined, isLoading: false };
+    });
+
+    const conversation = {
+      ...makeConversation({
+        assistant_id: 'bare:aionrs',
+        backend: 'aionrs',
+      }),
+      assistant: {
+        id: 'bare:aionrs',
+        source: 'generated',
+        name: 'Aion CLI',
+        avatar: '/Users/demo/.aionui/assistant-avatars/aion-old.svg',
+        backend: 'aionrs',
+      },
+    } as TChatConversation;
+
+    const { result } = renderHook(() => usePresetAssistantInfo(conversation));
+
+    expect(result.current.info).toEqual({
+      name: BUILTIN_AIONRS_DISPLAY_NAME,
+      logo: BUILTIN_AIONRS_LOGO,
+      isEmoji: false,
+      backend: 'aionrs',
+      assistantId: 'bare:aionrs',
+    });
+    expect(result.current.isLoading).toBe(false);
+  });
+
+  it('uses Zhanlu branding for generated aionrs assistants from the catalog', () => {
+    useSWRMock.mockImplementation((key: unknown) => {
+      if (key === 'assistants') {
+        return {
+          data: [
+            {
+              id: 'bare:aionrs',
+              source: 'generated',
+              name: 'Aion CLI',
+              avatar: '/api/assets/logo.svg',
+              agent: { type: 'aionrs', source: 'internal' },
+              name_i18n: {},
+            },
+          ],
+          isLoading: false,
+        };
+      }
+      if (key === 'extensions.acpAdapters') return { data: [], isLoading: false };
+      return { data: undefined, isLoading: false };
+    });
+
+    const conversation = makeConversation({
+      assistant_id: 'bare:aionrs',
+      backend: 'aionrs',
+    });
+
+    const { result } = renderHook(() => usePresetAssistantInfo(conversation));
+
+    expect(result.current.info).toEqual({
+      name: BUILTIN_AIONRS_DISPLAY_NAME,
+      logo: BUILTIN_AIONRS_LOGO,
+      isEmoji: false,
+      backend: 'aionrs',
+      assistantId: 'bare:aionrs',
+    });
+  });
+
+  it('keeps user-authored aionrs assistant avatars', () => {
+    useSWRMock.mockImplementation((key: unknown) => {
+      if (key === 'assistants') {
+        return {
+          data: [
+            {
+              id: 'user-aionrs',
+              source: 'user',
+              name: 'Custom Zhanlu',
+              avatar: '/api/assistants/user-aionrs/avatar',
+              agent: { type: 'aionrs', source: 'internal' },
+              name_i18n: {},
+            },
+          ],
+          isLoading: false,
+        };
+      }
+      if (key === 'extensions.acpAdapters') return { data: [], isLoading: false };
+      return { data: undefined, isLoading: false };
+    });
+
+    const conversation = makeConversation({
+      assistant_id: 'user-aionrs',
+      backend: 'aionrs',
+    });
+
+    const { result } = renderHook(() => usePresetAssistantInfo(conversation));
+
+    expect(result.current.info).toEqual({
+      name: 'Custom Zhanlu',
+      logo: '/api/assistants/user-aionrs/avatar',
+      isEmoji: false,
+      backend: 'aionrs',
+      assistantId: 'user-aionrs',
     });
   });
 

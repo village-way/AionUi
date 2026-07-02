@@ -12,7 +12,14 @@ import { assistantRuntimeKey, type Assistant } from '@/common/types/agent/assist
 import { resolveLocaleKey } from '@/common/utils';
 import type { AgentLogoMap } from '@/renderer/utils/model/agentLogo';
 import { resolveAgentLogo, useAgentLogos } from '@/renderer/utils/model/agentLogo';
-import { isLikelyLocalFilePath, resolveAssistantAvatar } from '@/renderer/utils/model/assistantAvatar';
+import {
+  isLikelyLocalFilePath,
+  resolveAssistantAvatar,
+  resolveAssistantDisplayAvatar,
+  type AssistantAvatar,
+} from '@/renderer/utils/model/assistantAvatar';
+import { resolveAssistantName } from '@/renderer/utils/model/assistantDisplay';
+import { resolveBuiltinAionrsDisplayName } from '@/renderer/utils/brand/builtinAgentBranding';
 import useSWR from 'swr';
 export interface PresetAssistantInfo {
   name: string;
@@ -133,6 +140,10 @@ function resolveLegacyRuntimeDisplayName(conversation: TChatConversation): strin
  */
 function normalizeAvatar(avatar: string | undefined): { logo: string; isEmoji: boolean } {
   const resolved = resolveAssistantAvatar(avatar);
+  return normalizeResolvedAvatar(resolved);
+}
+
+function normalizeResolvedAvatar(resolved: AssistantAvatar): { logo: string; isEmoji: boolean } {
   if (resolved.kind === 'image') {
     return { logo: resolved.value, isEmoji: false };
   }
@@ -212,9 +223,8 @@ function hasMatchingEnabledSkills(candidateSkills: string[] | undefined, enabled
  */
 function buildPresetInfoFromAssistant(assistant: Assistant, locale: string): PresetAssistantInfo {
   const localeKey = resolveLocaleKey(locale);
-  const name = assistant.name_i18n?.[localeKey] || assistant.name_i18n?.[locale] || assistant.name || assistant.id;
-  const avatar = typeof assistant.avatar === 'string' ? assistant.avatar : '';
-  const normalized = normalizeAvatar(avatar);
+  const name = resolveAssistantName(assistant, localeKey, assistant.id);
+  const normalized = normalizeResolvedAvatar(resolveAssistantDisplayAvatar(assistant));
   return {
     name,
     logo: normalized.logo,
@@ -228,6 +238,18 @@ function buildPresetInfoFromConversationAssistant(
   assistant: NonNullable<TChatConversation['assistant']>,
   logos: AgentLogoMap
 ): PresetAssistantInfo {
+  const brandedName = resolveBuiltinAionrsDisplayName(assistant);
+  if (brandedName) {
+    const normalized = normalizeResolvedAvatar(resolveAssistantDisplayAvatar(assistant));
+    return {
+      name: brandedName,
+      logo: normalized.logo,
+      isEmoji: normalized.isEmoji,
+      backend: assistant.backend,
+      assistantId: assistant.id,
+    };
+  }
+
   // Generated assistants reconciled from agent rows can have an empty avatar
   // or a legacy svg filename such as `claude.svg`. In that case, fall back to
   // the backend logo catalog instead of showing the generic robot.
@@ -322,6 +344,13 @@ export function usePresetAssistantInfo(conversation: TChatConversation | undefin
     const locale = i18n.language || 'en-US';
 
     if (conversation.assistant) {
+      if (resolveBuiltinAionrsDisplayName(conversation.assistant)) {
+        return {
+          info: buildPresetInfoFromConversationAssistant(conversation.assistant, logos),
+          isLoading: false,
+        };
+      }
+
       const snapshotAvatar =
         typeof conversation.assistant.avatar === 'string' ? conversation.assistant.avatar.trim() : '';
       if (snapshotAvatar && isLikelyLocalFilePath(snapshotAvatar)) {

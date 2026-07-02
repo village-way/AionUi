@@ -8,6 +8,7 @@ import { describe, expect, it } from 'vitest';
 import type { Assistant } from '@/common/types/agent/assistantTypes';
 import type { ICronJob } from '@/common/adapter/ipcBridge';
 import { getJobAgentMeta } from '@/renderer/pages/cron/ScheduledTasksPage/jobAgentMeta';
+import { BUILTIN_AIONRS_DISPLAY_NAME, BUILTIN_AIONRS_LOGO } from '@/renderer/utils/brand/builtinAgentBranding';
 
 const LOGOS = { codex: '/api/assets/logos/tools/coding/codex.svg' };
 
@@ -31,6 +32,34 @@ describe('getJobAgentMeta', () => {
         }),
       ],
       LOGOS
+    );
+
+    expect(meta).toEqual({
+      name: '文件规划助手',
+      emoji: '🤖',
+    });
+  });
+
+  it('uses the provided locale when resolving assistant-backed job names', () => {
+    const meta = getJobAgentMeta(
+      cronJob({
+        metadata: {
+          agent_type: 'acp',
+          agent_config: {
+            assistant_id: 'assistant-1',
+          },
+        },
+      }),
+      [
+        assistant({
+          id: 'assistant-1',
+          name: 'File Planner',
+          name_i18n: { 'zh-CN': '文件规划助手' },
+          avatar: '🤖',
+        }),
+      ],
+      LOGOS,
+      'zh-CN'
     );
 
     expect(meta).toEqual({
@@ -98,6 +127,36 @@ describe('getJobAgentMeta', () => {
     );
 
     expect(meta).toEqual({});
+  });
+
+  it('uses Zhanlu branding for generated aionrs assistant-backed jobs', () => {
+    const meta = getJobAgentMeta(
+      cronJob({
+        metadata: {
+          agent_type: 'aionrs',
+          agent_config: {
+            assistant_id: 'bare:aionrs',
+            name: 'Aion CLI',
+          },
+        },
+      }),
+      [
+        assistant({
+          id: 'bare:aionrs',
+          source: 'generated',
+          name: 'Aion CLI',
+          avatar: '/api/assets/logo.svg',
+          agent_id: 'agent-aionrs',
+          agent: { type: 'aionrs', source: 'internal' },
+        }),
+      ],
+      LOGOS
+    );
+
+    expect(meta).toEqual({
+      name: BUILTIN_AIONRS_DISPLAY_NAME,
+      logo: BUILTIN_AIONRS_LOGO,
+    });
   });
 });
 

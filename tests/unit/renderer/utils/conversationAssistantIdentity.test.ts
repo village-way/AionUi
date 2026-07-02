@@ -7,6 +7,7 @@
 import type { TChatConversation } from '@/common/config/storage';
 import type { PresetAssistantInfo } from '@/renderer/hooks/agent/usePresetAssistantInfo';
 import { resolveConversationLeadingMark } from '@/renderer/pages/conversation/utils/conversationAssistantIdentity';
+import { BUILTIN_AIONRS_LOGO } from '@/renderer/utils/brand/builtinAgentBranding';
 import { describe, expect, it } from 'vitest';
 
 const TEST_LOGOS = {
@@ -69,6 +70,23 @@ describe('resolveConversationLeadingMark', () => {
       kind: 'image',
       value: '/api/assets/logos/gemini.svg',
       label: 'gemini',
+    });
+  });
+
+  it('uses the built-in Zhanlu logo for backend-only aionrs conversations', () => {
+    const result = resolveConversationLeadingMark(
+      makeConversation({
+        type: 'aionrs',
+        extra: { backend: 'aionrs' },
+      }),
+      undefined,
+      TEST_LOGOS
+    );
+
+    expect(result).toEqual({
+      kind: 'image',
+      value: BUILTIN_AIONRS_LOGO,
+      label: 'aionrs',
     });
   });
 

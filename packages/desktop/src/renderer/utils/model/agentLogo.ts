@@ -104,6 +104,11 @@ function lookupBackendLogo(logos: AgentLogoMap, backend: string | undefined | nu
 }
 
 function lookupBackendAvatar(logos: AgentLogoMap, backend: string | undefined | null): AssistantAvatar {
+  const brandedLogo = resolveBuiltinAionrsBackendLogo(backend);
+  if (brandedLogo) {
+    return resolveAssistantAvatar(brandedLogo);
+  }
+
   const logo = lookupBackendLogoValue(logos, backend);
   return resolveAssistantAvatar(logo || undefined);
 }

@@ -14,6 +14,7 @@ import { useAllCronJobs } from '@renderer/pages/cron/useCronJobs';
 import { formatSchedule, formatNextRun } from '@renderer/pages/cron/cronUtils';
 import { systemSettings, type ICronJob } from '@/common/adapter/ipcBridge';
 import { configService } from '@/common/config/configService';
+import { resolveLocaleKey } from '@/common/utils';
 import { useConversationAssistants } from '@renderer/pages/conversation/hooks/useConversationAssistants';
 import CronStatusTag from './CronStatusTag';
 import CreateTaskDialog from './CreateTaskDialog';
@@ -24,7 +25,8 @@ import TalkToButlerButton from '@/renderer/components/base/TalkToButlerButton';
 const ScheduledTasksPage: React.FC = () => {
   const layout = useLayoutContext();
   const isMobile = layout?.isMobile ?? false;
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const localeKey = resolveLocaleKey(i18n.language);
   const navigate = useNavigate();
   const { jobs, loading, pauseJob, resumeJob } = useAllCronJobs();
   const { presetAssistants } = useConversationAssistants();
@@ -159,7 +161,7 @@ const ScheduledTasksPage: React.FC = () => {
             )}
           >
             {jobs.map((job) => {
-              const agentMeta = getJobAgentMeta(job, presetAssistants, logos);
+              const agentMeta = getJobAgentMeta(job, presetAssistants, logos, localeKey);
               const isManualOnly = job.schedule.kind === 'cron' && !job.schedule.expr;
               const executionModeLabel =
                 job.target.execution_mode === 'new_conversation'

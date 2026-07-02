@@ -5,12 +5,22 @@
  */
 
 import zhanluLogo from '@renderer/assets/brand/zhanlu-logo.svg';
-import { isAionrsAssistant, type Assistant } from '@/common/types/agent/assistantTypes';
 
 export const BUILTIN_AIONRS_DISPLAY_NAME = 'Zhanlu CLI';
 export const BUILTIN_AIONRS_LOGO = zhanluLogo;
 
-type BuiltinAionrsAssistantSource = Pick<Assistant, 'agent' | 'source' | 'id'> | null | undefined;
+type BuiltinAionrsAssistantSource =
+  | {
+      id?: string | null;
+      source?: string | null;
+      agent?: {
+        type?: string | null;
+        acp_backend?: string | null;
+      } | null;
+      backend?: string | null;
+    }
+  | null
+  | undefined;
 
 /** True for the shipped generated aionrs assistant (not user-authored clones). */
 export function isBuiltinAionrsAssistant(assistant: BuiltinAionrsAssistantSource): boolean {
@@ -18,11 +28,13 @@ export function isBuiltinAionrsAssistant(assistant: BuiltinAionrsAssistantSource
     return false;
   }
 
-  if (isAionrsAssistant(assistant)) {
+  const agentType = assistant.agent?.type?.trim().toLowerCase();
+  const backend = (assistant.backend || assistant.agent?.acp_backend || '').trim().toLowerCase();
+  if (agentType === 'aionrs' || backend === 'aionrs') {
     return true;
   }
 
-  const id = assistant.id.toLowerCase();
+  const id = (assistant.id || '').toLowerCase();
   return id === 'bare-aionrs' || id === 'bare:aionrs' || id.endsWith(':aionrs');
 }
 
@@ -30,9 +42,7 @@ export function resolveBuiltinAionrsDisplayName(assistant: BuiltinAionrsAssistan
   return isBuiltinAionrsAssistant(assistant) ? BUILTIN_AIONRS_DISPLAY_NAME : null;
 }
 
-export function resolveBuiltinAionrsLogoUrl(
-  assistant: Pick<Assistant, 'agent' | 'source' | 'id'> | null | undefined
-): string | null {
+export function resolveBuiltinAionrsLogoUrl(assistant: BuiltinAionrsAssistantSource): string | null {
   return isBuiltinAionrsAssistant(assistant) ? BUILTIN_AIONRS_LOGO : null;
 }
 

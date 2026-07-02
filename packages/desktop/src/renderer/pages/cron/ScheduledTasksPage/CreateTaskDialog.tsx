@@ -24,7 +24,7 @@ import { buildAssistantModelInfo } from '@renderer/pages/guid/hooks/useGuidAssis
 import { WorkspaceFolderSelect } from '@renderer/components/workspace';
 import { createCronSchedule } from '@renderer/pages/cron/cronUtils';
 import { getConversationCreateErrorMessage } from '@renderer/pages/conversation/utils/conversationCreateError';
-import { resolveAssistantAvatar } from '@renderer/utils/model/assistantAvatar';
+import { resolveAssistantDisplayAvatar } from '@renderer/utils/model/assistantAvatar';
 import { resolveAssistantName } from '@renderer/utils/model/assistantDisplay';
 import { resolveSupportedConversationType } from '@renderer/utils/model/agentTypeSupportPolicy';
 import { resolveCronAgentConfig } from './resolveCronAgentConfig';
@@ -497,7 +497,7 @@ const CreateTaskDialog: React.FC<CreateTaskDialogProps> = ({
 
                 const assistant = presetAssistants.find((item) => item.id === assistantId);
                 const name = resolveAssistantName(assistant, localeKey, assistantId);
-                const avatar = resolveAssistantAvatar(assistant?.avatar);
+                const avatar = resolveAssistantDisplayAvatar(assistant);
                 const logo = resolveAgentLogo(logos, {
                   backend: assistantRuntimeKey(assistant),
                 });
@@ -520,7 +520,7 @@ const CreateTaskDialog: React.FC<CreateTaskDialogProps> = ({
             >
               {presetAssistants.map((assistant) => {
                 const name = resolveAssistantName(assistant, localeKey, assistant.name);
-                const avatar = resolveAssistantAvatar(assistant.avatar);
+                const avatar = resolveAssistantDisplayAvatar(assistant);
                 const runtimeKey = assistantRuntimeKey(assistant);
                 const logo = resolveAgentLogo(logos, {
                   backend: runtimeKey,

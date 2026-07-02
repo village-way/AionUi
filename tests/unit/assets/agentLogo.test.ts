@@ -13,6 +13,7 @@ import {
   isDefaultModel,
   getModelDisplayLabel,
 } from '@/renderer/utils/model/agentLogo';
+import { BUILTIN_AIONRS_LOGO } from '@/renderer/utils/brand/builtinAgentBranding';
 
 const bridgeMocks = vi.hoisted(() => ({
   getManagedAgents: vi.fn(),
@@ -115,6 +116,20 @@ describe('agentLogo', () => {
       expect(resolveAgentAvatar(LOGOS, { backend: 'emojiagent' })).toEqual({
         kind: 'emoji',
         value: '🧠',
+      });
+    });
+
+    it('uses the built-in Zhanlu logo for backend-only aionrs avatars', () => {
+      expect(resolveAgentAvatar(LOGOS, { backend: 'aionrs' })).toEqual({
+        kind: 'image',
+        value: BUILTIN_AIONRS_LOGO,
+      });
+    });
+
+    it('keeps explicit custom images for user-authored aionrs avatars', () => {
+      expect(resolveAgentAvatar(LOGOS, { icon: '/api/assistants/user-aionrs/avatar', backend: 'aionrs' })).toEqual({
+        kind: 'image',
+        value: '/api/assistants/user-aionrs/avatar',
       });
     });
   });

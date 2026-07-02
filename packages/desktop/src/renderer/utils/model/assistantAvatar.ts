@@ -4,7 +4,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { Assistant } from '@/common/types/agent/assistantTypes';
 import { resolveBuiltinAionrsLogoUrl } from '@/renderer/utils/brand/builtinAgentBranding';
 import { resolveBackendAssetUrl } from '@/renderer/utils/platform';
 
@@ -27,7 +26,19 @@ export function isLikelyLocalFilePath(value: string): boolean {
 }
 
 export function resolveAssistantDisplayAvatar(
-  assistant: Pick<Assistant, 'avatar' | 'agent' | 'source' | 'id'> | null | undefined
+  assistant:
+    | {
+        avatar?: string | null;
+        id?: string | null;
+        source?: string | null;
+        agent?: {
+          type?: string | null;
+          acp_backend?: string | null;
+        } | null;
+        backend?: string | null;
+      }
+    | null
+    | undefined
 ): AssistantAvatar {
   const brandedLogo = resolveBuiltinAionrsLogoUrl(assistant);
   if (brandedLogo) {
@@ -37,7 +48,7 @@ export function resolveAssistantDisplayAvatar(
   return resolveAssistantAvatar(assistant?.avatar);
 }
 
-export function resolveAssistantAvatar(avatar: string | undefined): AssistantAvatar {
+export function resolveAssistantAvatar(avatar: string | null | undefined): AssistantAvatar {
   const value = avatar?.trim();
   if (!value) return { kind: 'fallback' };
 

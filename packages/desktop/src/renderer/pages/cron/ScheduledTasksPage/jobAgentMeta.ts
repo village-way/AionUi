@@ -7,7 +7,8 @@
 import type { ICronJob } from '@/common/adapter/ipcBridge';
 import type { AgentLogoMap } from '@renderer/utils/model/agentLogo';
 import { resolveAgentLogo } from '@renderer/utils/model/agentLogo';
-import { resolveAssistantAvatar } from '@renderer/utils/model/assistantAvatar';
+import { resolveAssistantDisplayAvatar } from '@renderer/utils/model/assistantAvatar';
+import { resolveAssistantName } from '@renderer/utils/model/assistantDisplay';
 import { assistantRuntimeKey, type Assistant } from '@/common/types/agent/assistantTypes';
 
 function normalizeAgentBackend(agent: string | undefined): string | undefined {
@@ -28,7 +29,8 @@ function resolveCronAssistantId(config: ICronJob['metadata']['agent_config']): s
 export function getJobAgentMeta(
   job: ICronJob,
   presetAssistants: Assistant[],
-  logos: AgentLogoMap
+  logos: AgentLogoMap,
+  localeKey = 'en-US'
 ): { name?: string; logo?: string | null; emoji?: string } {
   const config = job.metadata.agent_config;
   const assistantId = resolveCronAssistantId(config);
@@ -39,8 +41,8 @@ export function getJobAgentMeta(
     }
 
     const rawType = normalizeAgentBackend(job.metadata.agent_type);
-    const displayName = assistant.name || rawType;
-    const avatar = resolveAssistantAvatar(assistant.avatar);
+    const displayName = resolveAssistantName(assistant, localeKey, assistant.name || rawType);
+    const avatar = resolveAssistantDisplayAvatar(assistant);
     if (avatar.kind === 'image') {
       return { name: displayName, logo: avatar.value };
     }

@@ -105,10 +105,12 @@ const AgentCard: React.FC<AgentCardProps> = (props) => {
   const displayName = resolveBuiltinAionrsManagedAgentName(agent) ?? agent.name;
   const diagnostics = formatManagedAgentDiagnosticMessage(t, agent);
   const displayStatus = resolveDisplayStatus(agent.status, agent.last_check_error_code);
+  const agentBackend = agent.backend || agent.agent_type;
+  const shouldUseExplicitAgentIcon = !(props.type === 'official' && agentBackend?.toLowerCase() === 'aionrs');
 
   const avatar = resolveAgentAvatar(logos, {
-    icon: agent.avatar || agent.icon,
-    backend: agent.backend || agent.agent_type,
+    icon: shouldUseExplicitAgentIcon ? agent.avatar || agent.icon : undefined,
+    backend: agentBackend,
     custom_agent_id: agent.custom_agent_id,
     isExtension: agent.isExtension,
   });

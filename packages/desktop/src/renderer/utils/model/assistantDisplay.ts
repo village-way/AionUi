@@ -4,10 +4,19 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { Assistant } from '@/common/types/agent/assistantTypes';
 import { resolveBuiltinAionrsDisplayName } from '@/renderer/utils/brand/builtinAgentBranding';
 
-type AssistantNameSource = Pick<Assistant, 'id' | 'name' | 'name_i18n' | 'agent' | 'source'>;
+type AssistantNameSource = {
+  id?: string | null;
+  name?: string | null;
+  name_i18n?: Record<string, string>;
+  agent?: {
+    type?: string | null;
+    acp_backend?: string | null;
+  } | null;
+  source?: string | null;
+  backend?: string | null;
+};
 
 export function resolveAssistantName(
   assistant: AssistantNameSource | null | undefined,

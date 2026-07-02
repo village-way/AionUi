@@ -38,6 +38,17 @@ describe('builtinAgentBranding', () => {
     expect(resolveBuiltinAionrsDisplayName(assistant)).toBe(BUILTIN_AIONRS_DISPLAY_NAME);
   });
 
+  it('brands generated conversation snapshots by backend', () => {
+    const assistant = {
+      id: 'generated-snapshot',
+      source: 'generated',
+      backend: 'aionrs',
+    };
+
+    expect(isBuiltinAionrsAssistant(assistant)).toBe(true);
+    expect(resolveBuiltinAionrsLogoUrl(assistant)).toBe(BUILTIN_AIONRS_LOGO);
+  });
+
   it('does not brand user-authored aionrs assistants', () => {
     const assistant = {
       id: 'user-aionrs',

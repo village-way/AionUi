@@ -12,6 +12,7 @@ import { Left, Delete, Write, Attention, Robot } from '@icon-park/react';
 import { ipcBridge } from '@/common';
 import type { ICronJob } from '@/common/adapter/ipcBridge';
 import type { TChatConversation } from '@/common/config/storage';
+import { resolveLocaleKey } from '@/common/utils';
 import { useConversationAssistants } from '@renderer/pages/conversation/hooks/useConversationAssistants';
 import CronStatusTag from './CronStatusTag';
 import CreateTaskDialog from './CreateTaskDialog';
@@ -25,7 +26,8 @@ import { mutate } from 'swr';
 import { getConversationRuntimeWorkspaceErrorMessage } from '@renderer/pages/conversation/utils/conversationCreateError';
 
 const TaskDetailPage: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const localeKey = resolveLocaleKey(i18n.language);
   const navigate = useNavigate();
   const { job_id } = useParams<{ job_id: string }>();
   const [job, setJob] = useState<ICronJob | null>(null);
@@ -42,7 +44,7 @@ const TaskDetailPage: React.FC = () => {
   const { conversations } = useCronJobConversations(job_id);
   const { presetAssistants } = useConversationAssistants();
   const logos = useAgentLogos();
-  const assistantIdentity = job ? getJobAgentMeta(job, presetAssistants, logos) : null;
+  const assistantIdentity = job ? getJobAgentMeta(job, presetAssistants, logos, localeKey) : null;
 
   const fetchJob = useCallback(async () => {
     if (!job_id) return;
