@@ -35,6 +35,30 @@ on:
       GH_TOKEN:
         description: 'Token used to fetch the private source repository and access GitHub release assets'
         required: true
+      BUILD_CERTIFICATE_BASE64:
+        required: false
+      P12_PASSWORD:
+        required: false
+      KEYCHAIN_PASSWORD:
+        required: false
+      IDENTITY:
+        required: false
+      APP_ID:
+        required: false
+      APPLE_ID:
+        required: false
+      APPLE_ID_PASSWORD:
+        required: false
+      TEAM_ID:
+        required: false
+      SENTRY_DSN:
+        required: false
+      SENTRY_AUTH_TOKEN:
+        required: false
+      SENTRY_ORG:
+        required: false
+      SENTRY_PROJECT:
+        required: false
 
 env:
   BUN_INSTALL_REGISTRY: 'https://registry.npmjs.org/'
