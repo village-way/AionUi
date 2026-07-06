@@ -87,3 +87,24 @@ jobs:
           done
 
           exit "$failed"
+
+  # Job 4: Build test across representative PR platforms (private-source workflow compatibility only)
+  build-test:
+    name: Build Test (${{ matrix.platform }})
+    if: ${{ false }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: 'macos-arm64'
+            os: 'macos-14'
+          - platform: 'windows-x64'
+            os: 'windows-2022'
+          - platform: 'linux-x64'
+            os: 'ubuntu-latest'
+    steps:
+      - name: Skip public PR build test
+        run: echo "Public skeleton PR checks do not fetch private source or run package builds."
+
+  # Job 5: Test release scripts
