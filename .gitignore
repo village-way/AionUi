@@ -193,6 +193,7 @@ kylindoc/
 lint-results.txt
 
 # Git worktrees
+.source-repo/
 .worktree/
 .worktrees/
 worktree/

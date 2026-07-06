@@ -2,6 +2,12 @@ name: '✓PR E2E Artifacts'
 
 on:
   workflow_dispatch:
+    inputs:
+      source_ref:
+        description: 'Private source ref to fetch (branch, tag, or commit)'
+        required: false
+        default: ''
+        type: string
 
 concurrency:
   group: pr-e2e-artifacts-${{ github.run_id }}
@@ -22,6 +28,14 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
+
+      - name: Fetch private source
+        shell: bash
+        env:
+          AIONUI_SOURCE_REPO_URL: ${{ vars.AIONUI_SOURCE_REPO_URL || 'https://github.com/village-way/zhanlu-work.git' }}
+          AIONUI_SOURCE_REF: ${{ inputs.source_ref || github.ref_name }}
+          AIONUI_SOURCE_TOKEN: ${{ secrets.GH_TOKEN }}
+        run: bash scripts/fetch-private-source.sh
 
       - name: Setup Node.js
         uses: actions/setup-node@v4

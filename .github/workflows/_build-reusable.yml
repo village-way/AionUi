@@ -11,6 +11,10 @@ on:
         description: 'Git ref to checkout (leave empty to use the triggering commit)'
         type: string
         default: ''
+      source_ref:
+        description: 'Private source ref to fetch (leave empty to use ref or triggering ref)'
+        type: string
+        default: ''
       skip_code_quality:
         description: 'Skip code quality checks (faster builds for debugging)'
         type: boolean
@@ -43,6 +47,14 @@ jobs:
         uses: actions/checkout@v6
         with:
           ref: ${{ inputs.ref }}
+
+      - name: Fetch private source
+        shell: bash
+        env:
+          AIONUI_SOURCE_REPO_URL: ${{ vars.AIONUI_SOURCE_REPO_URL || 'https://github.com/village-way/zhanlu-work.git' }}
+          AIONUI_SOURCE_REF: ${{ inputs.source_ref || inputs.ref || github.ref_name }}
+          AIONUI_SOURCE_TOKEN: ${{ secrets.GH_TOKEN }}
+        run: bash scripts/fetch-private-source.sh
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -90,6 +102,14 @@ jobs:
         uses: actions/checkout@v6
         with:
           ref: ${{ inputs.ref }}
+
+      - name: Fetch private source
+        shell: bash
+        env:
+          AIONUI_SOURCE_REPO_URL: ${{ vars.AIONUI_SOURCE_REPO_URL || 'https://github.com/village-way/zhanlu-work.git' }}
+          AIONUI_SOURCE_REF: ${{ inputs.source_ref || inputs.ref || github.ref_name }}
+          AIONUI_SOURCE_TOKEN: ${{ secrets.GH_TOKEN }}
+        run: bash scripts/fetch-private-source.sh
 
       - name: Get commit hash
         id: commit

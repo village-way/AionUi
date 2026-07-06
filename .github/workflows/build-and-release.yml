@@ -25,6 +25,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v6
 
+      - name: Fetch private source
+        shell: bash
+        env:
+          AIONUI_SOURCE_REPO_URL: ${{ vars.AIONUI_SOURCE_REPO_URL || 'https://github.com/village-way/zhanlu-work.git' }}
+          AIONUI_SOURCE_REF: ${{ vars.AIONUI_SOURCE_REF || github.ref_name }}
+          AIONUI_SOURCE_TOKEN: ${{ secrets.GH_TOKEN }}
+        run: bash scripts/fetch-private-source.sh
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -61,6 +69,7 @@ jobs:
     if: needs.code-quality.result == 'success' && (github.ref == 'refs/heads/dev' || (startsWith(github.ref, 'refs/tags/') && !contains(github.ref, '-dev-')))
     with:
       skip_code_quality: true
+      source_ref: ${{ vars.AIONUI_SOURCE_REF || github.ref_name }}
       matrix: >-
         {"include":[
           {"platform":"macos-arm64","os":"macos-14","command":"node scripts/build-with-builder.js arm64 --mac --arm64","artifact-name":"macos-build-arm64","arch":"arm64"},
@@ -80,6 +89,7 @@ jobs:
     if: needs.code-quality.result == 'success' && (github.ref == 'refs/heads/dev' || (startsWith(github.ref, 'refs/tags/') && !contains(github.ref, '-dev-')))
     with:
       ref: ''
+      source_ref: ${{ vars.AIONUI_SOURCE_REF || github.ref_name }}
       append_commit_hash: false
       skip_code_quality: true
     secrets: inherit
@@ -159,6 +169,14 @@ jobs:
           # changes are rejected for the built-in GITHUB_TOKEN (lacks the
           # `workflow` scope, which GITHUB_TOKEN can never grant).
           token: ${{ secrets.GH_TOKEN }}
+
+      - name: Fetch private source
+        shell: bash
+        env:
+          AIONUI_SOURCE_REPO_URL: ${{ vars.AIONUI_SOURCE_REPO_URL || 'https://github.com/village-way/zhanlu-work.git' }}
+          AIONUI_SOURCE_REF: ${{ vars.AIONUI_SOURCE_REF || github.ref_name }}
+          AIONUI_SOURCE_TOKEN: ${{ secrets.GH_TOKEN }}
+        run: bash scripts/fetch-private-source.sh
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -263,6 +281,14 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
+
+      - name: Fetch private source
+        shell: bash
+        env:
+          AIONUI_SOURCE_REPO_URL: ${{ vars.AIONUI_SOURCE_REPO_URL || 'https://github.com/village-way/zhanlu-work.git' }}
+          AIONUI_SOURCE_REF: ${{ vars.AIONUI_SOURCE_REF || github.ref_name }}
+          AIONUI_SOURCE_TOKEN: ${{ secrets.GH_TOKEN }}
+        run: bash scripts/fetch-private-source.sh
 
       - name: Get version for release
         id: version

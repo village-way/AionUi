@@ -12,6 +12,11 @@ on:
         required: true
         default: 'main'
         type: string
+      source_ref:
+        description: 'Private source ref to fetch (branch, tag, or commit)'
+        required: false
+        default: ''
+        type: string
       platform:
         description: 'Platform to build'
         required: true
@@ -86,6 +91,7 @@ jobs:
     with:
       matrix: ${{ needs.prepare-matrix.outputs.matrix }}
       ref: ${{ inputs.branch }}
+      source_ref: ${{ inputs.source_ref || inputs.branch }}
       skip_code_quality: ${{ inputs.skip_code_quality }}
       aioncore_run_id: ${{ inputs.aioncore_run_id }}
       append_commit_hash: true
