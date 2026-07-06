@@ -19,6 +19,10 @@ on:
         description: 'Skip code quality checks (caller already ran them)'
         type: boolean
         default: false
+    secrets:
+      GH_TOKEN:
+        description: 'Token used to fetch the private source repository'
+        required: true
   workflow_dispatch:
     inputs:
       ref:

@@ -31,6 +31,10 @@ on:
         description: 'Optional AionCore Manual Build workflow run id to bundle instead of the pinned release'
         type: string
         default: ''
+    secrets:
+      GH_TOKEN:
+        description: 'Token used to fetch the private source repository and access GitHub release assets'
+        required: true
 
 env:
   BUN_INSTALL_REGISTRY: 'https://registry.npmjs.org/'
