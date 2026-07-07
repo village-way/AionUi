@@ -1,0 +1,49 @@
+name: 'PR Checks (docs only)'
+
+on:
+  pull_request:
+    types: [opened, synchronize, edited, ready_for_review]
+    branches: [main, dev]
+    paths:
+      - '**/*.md'
+      - 'docs/**'
+      - '.vscode/**'
+      - '.github/ISSUE_TEMPLATE/**'
+
+permissions:
+  contents: read
+
+jobs:
+  skeleton-docs-check:
+    name: Public Skeleton Docs Check
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Validate bootstrap script syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f scripts/fetch-private-source.sh
+          bash -n scripts/fetch-private-source.sh
+
+  unit-tests-ubuntu:
+    name: Unit Tests (ubuntu-latest)
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Docs-only public skeleton PR, skipping unit tests."
+
+  unit-tests-macos:
+    name: Unit Tests (macos-14)
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Docs-only public skeleton PR, skipping unit tests."
+
+  unit-tests-windows:
+    name: Unit Tests (windows-2022)
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Docs-only public skeleton PR, skipping unit tests."
