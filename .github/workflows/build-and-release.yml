@@ -11,16 +11,120 @@ on:
     branches: [main]
     tags:
       - '*'
+  repository_dispatch:
+    types: [work-updated]
 
 env:
   BUN_INSTALL_REGISTRY: 'https://registry.npmjs.org/'
 
 jobs:
+  resolve-trigger:
+    name: Resolve Trigger
+    runs-on: ubuntu-latest
+    outputs:
+      should_build: ${{ steps.resolve.outputs.should_build }}
+      build_kind: ${{ steps.resolve.outputs.build_kind }}
+      source_ref: ${{ steps.resolve.outputs.source_ref }}
+      release_tag: ${{ steps.resolve.outputs.release_tag }}
+      is_dev: ${{ steps.resolve.outputs.is_dev }}
+
+    steps:
+      - name: Resolve source and release mode
+        id: resolve
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          REF: ${{ github.ref }}
+          REF_NAME: ${{ github.ref_name }}
+          SOURCE_REF_OVERRIDE: ${{ vars.AIONUI_SOURCE_REF }}
+          PAYLOAD_BUILD_KIND: ${{ github.event.client_payload.build_kind }}
+          PAYLOAD_SOURCE_REF: ${{ github.event.client_payload.source_ref }}
+          PAYLOAD_SOURCE_COMMIT: ${{ github.event.client_payload.source_commit }}
+          PAYLOAD_SOURCE_TAG: ${{ github.event.client_payload.source_tag }}
+        run: |
+          set -euo pipefail
+
+          should_build="true"
+          build_kind=""
+          source_ref=""
+          release_tag=""
+          is_dev="false"
+
+          if [ "$EVENT_NAME" = "repository_dispatch" ]; then
+            case "$PAYLOAD_BUILD_KIND" in
+              dev)
+                build_kind="dev"
+                is_dev="true"
+                source_ref="${PAYLOAD_SOURCE_REF:-$PAYLOAD_SOURCE_COMMIT}"
+                ;;
+              release)
+                build_kind="release"
+                is_dev="false"
+                source_ref="${PAYLOAD_SOURCE_REF:-$PAYLOAD_SOURCE_TAG}"
+                release_tag="${PAYLOAD_SOURCE_TAG:-$source_ref}"
+                if [[ "$release_tag" == *-dev-* ]]; then
+                  should_build="false"
+                fi
+                ;;
+              *)
+                echo "::error::Unsupported repository_dispatch build_kind: ${PAYLOAD_BUILD_KIND:-<empty>}"
+                exit 1
+                ;;
+            esac
+          elif [ "$REF" = "refs/heads/main" ]; then
+            build_kind="dev"
+            is_dev="true"
+            source_ref="${SOURCE_REF_OVERRIDE:-$REF_NAME}"
+          elif [[ "$REF" == refs/tags/* ]]; then
+            release_tag="$REF_NAME"
+            if [[ "$release_tag" == *-dev-* ]]; then
+              should_build="false"
+              build_kind="skip"
+              source_ref="${SOURCE_REF_OVERRIDE:-main}"
+            else
+              build_kind="release"
+              is_dev="false"
+              source_ref="${SOURCE_REF_OVERRIDE:-main}"
+            fi
+          else
+            echo "::error::Unsupported trigger: $EVENT_NAME / $REF"
+            exit 1
+          fi
+
+          if [ "$should_build" = "true" ] && [ -z "$source_ref" ]; then
+            echo "::error::Resolved source_ref is empty"
+            exit 1
+          fi
+
+          if [ "$should_build" = "true" ] && [ "$build_kind" = "release" ] && [ -z "$release_tag" ]; then
+            echo "::error::Resolved release_tag is empty"
+            exit 1
+          fi
+
+          {
+            echo "should_build=$should_build"
+            echo "build_kind=$build_kind"
+            echo "source_ref=$source_ref"
+            echo "release_tag=$release_tag"
+            echo "is_dev=$is_dev"
+          } >> "$GITHUB_OUTPUT"
+
+          {
+            echo "### Resolved trigger"
+            echo ""
+            echo "- Should build: \`$should_build\`"
+            echo "- Build kind: \`$build_kind\`"
+            echo "- Source ref: \`${source_ref:-<none>}\`"
+            echo "- Release tag: \`${release_tag:-<none>}\`"
+            echo "- Is dev: \`$is_dev\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
   # 独立 code-quality job,供桌面构建和 web-cli 打包共用,避免重复跑
   code-quality:
     name: Code Quality
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' || (startsWith(github.ref, 'refs/tags/') && !contains(github.ref, '-dev-'))
+    needs: resolve-trigger
+    if: needs.resolve-trigger.outputs.should_build == 'true'
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -29,7 +133,7 @@ jobs:
         shell: bash
         env:
           AIONUI_SOURCE_REPO_URL: ${{ vars.AIONUI_SOURCE_REPO_URL || 'https://github.com/village-way/zhanlu-work.git' }}
-          AIONUI_SOURCE_REF: ${{ vars.AIONUI_SOURCE_REF || (startsWith(github.ref, 'refs/tags/') && 'main' || github.ref_name) }}
+          AIONUI_SOURCE_REF: ${{ needs.resolve-trigger.outputs.source_ref }}
           AIONUI_SOURCE_TOKEN: ${{ secrets.GH_TOKEN }}
         run: bash scripts/fetch-private-source.sh
 
@@ -64,12 +168,11 @@ jobs:
   build-pipeline:
     name: Build Pipeline
     uses: ./.github/workflows/_build-reusable.yml
-    needs: code-quality
-    # main 分支或正式 tag 触发构建（排除 -dev- tag，避免重复构建）
-    if: needs.code-quality.result == 'success' && (github.ref == 'refs/heads/main' || (startsWith(github.ref, 'refs/tags/') && !contains(github.ref, '-dev-')))
+    needs: [resolve-trigger, code-quality]
+    if: needs.resolve-trigger.outputs.should_build == 'true' && needs.code-quality.result == 'success'
     with:
       skip_code_quality: true
-      source_ref: ${{ vars.AIONUI_SOURCE_REF || (startsWith(github.ref, 'refs/tags/') && 'main' || github.ref_name) }}
+      source_ref: ${{ needs.resolve-trigger.outputs.source_ref }}
       matrix: >-
         {"include":[
           {"platform":"macos-arm64","os":"macos-14","command":"node scripts/build-with-builder.js arm64 --mac --arm64","artifact-name":"macos-build-arm64","arch":"arm64"},
@@ -97,12 +200,11 @@ jobs:
   pack-web-cli:
     name: Pack Web CLI
     uses: ./.github/workflows/pack-web-cli.yml
-    needs: code-quality
-    # 与桌面构建同频触发：main 分支或正式 tag（排除 -dev- tag）
-    if: needs.code-quality.result == 'success' && (github.ref == 'refs/heads/main' || (startsWith(github.ref, 'refs/tags/') && !contains(github.ref, '-dev-')))
+    needs: [resolve-trigger, code-quality]
+    if: needs.resolve-trigger.outputs.should_build == 'true' && needs.code-quality.result == 'success'
     with:
       ref: ''
-      source_ref: ${{ vars.AIONUI_SOURCE_REF || (startsWith(github.ref, 'refs/tags/') && 'main' || github.ref_name) }}
+      source_ref: ${{ needs.resolve-trigger.outputs.source_ref }}
       append_commit_hash: false
       skip_code_quality: true
     secrets:
@@ -117,7 +219,7 @@ jobs:
     if: |
       failure() &&
       github.run_attempt == 1 &&
-      (github.event_name == 'push' || github.event_name == 'schedule')
+      (github.event_name == 'push' || github.event_name == 'repository_dispatch' || github.event_name == 'schedule')
 
     steps:
       - name: Log retry information
@@ -164,15 +266,14 @@ jobs:
             exit 1
           fi
 
-  # 自动创建开发 tag（仅 main 分支推送时）
-  create-tag:
-    name: Create Tag from Branch
+  prepare-release-ref:
+    name: Prepare Release Ref
     runs-on: ubuntu-latest
-    needs: [build-pipeline]
-    if: success() && github.ref == 'refs/heads/main'
+    needs: [resolve-trigger, build-pipeline]
+    if: needs.resolve-trigger.outputs.should_build == 'true' && needs.build-pipeline.result == 'success'
     outputs:
-      tag_name: ${{ steps.create_tag.outputs.tag_name }}
-      is_dev: ${{ steps.create_tag.outputs.is_dev }}
+      tag_name: ${{ steps.prepare_tag.outputs.tag_name }}
+      is_dev: ${{ steps.prepare_tag.outputs.is_dev }}
 
     steps:
       - name: Checkout code
@@ -185,100 +286,64 @@ jobs:
           token: ${{ secrets.GH_TOKEN }}
 
       - name: Fetch private source
+        if: needs.resolve-trigger.outputs.is_dev == 'true'
         shell: bash
         env:
           AIONUI_SOURCE_REPO_URL: ${{ vars.AIONUI_SOURCE_REPO_URL || 'https://github.com/village-way/zhanlu-work.git' }}
-          AIONUI_SOURCE_REF: ${{ vars.AIONUI_SOURCE_REF || github.ref_name }}
+          AIONUI_SOURCE_REF: ${{ needs.resolve-trigger.outputs.source_ref }}
           AIONUI_SOURCE_TOKEN: ${{ secrets.GH_TOKEN }}
         run: bash scripts/fetch-private-source.sh
 
       - name: Setup Node.js
+        if: needs.resolve-trigger.outputs.is_dev == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: '22'
 
-      - name: Setup bun
-        uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: latest
-
-      - name: Create and push tag
-        id: create_tag
+      - name: Prepare and push release tag
+        id: prepare_tag
+        shell: bash
         run: |
-          VERSION=$(node -p "require('./package.json').version")
-          COMMIT_SHORT=$(git rev-parse --short HEAD)
-          BRANCH_NAME=${GITHUB_REF#refs/heads/}
+          set -euo pipefail
 
-          # 根据分支确定 tag 格式
-          if [ "$BRANCH_NAME" = "main" ]; then
-            TAG_NAME="v${VERSION}-dev-${COMMIT_SHORT}"
-            IS_DEV="true"
-            echo "🔧 Development release: $TAG_NAME"
-          else
-            TAG_NAME="v$VERSION"
-            IS_DEV="false"
-            echo "🚀 Production release: $TAG_NAME"
-          fi
+          IS_DEV="${{ needs.resolve-trigger.outputs.is_dev }}"
+          RELEASE_TAG="${{ needs.resolve-trigger.outputs.release_tag }}"
+          SOURCE_REF="${{ needs.resolve-trigger.outputs.source_ref }}"
+          HEAD_SHA="$(git rev-parse HEAD)"
 
-          echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
-          echo "is_dev=$IS_DEV" >> $GITHUB_OUTPUT
-
-          # 检查远程tag是否已存在
-          if git ls-remote --tags origin | grep -q "refs/tags/$TAG_NAME$"; then
-            if [ "$IS_DEV" = "false" ]; then
-              # Main 分支：需要递增版本并修改 package.json
-              echo "⚠️ Tag $TAG_NAME already exists, auto-incrementing version..."
-
-              if [[ $VERSION =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
-                MAJOR=${BASH_REMATCH[1]}
-                MINOR=${BASH_REMATCH[2]}
-                PATCH=${BASH_REMATCH[3]}
-                NEW_PATCH=$((PATCH + 1))
-                NEW_VERSION="${MAJOR}.${MINOR}.${NEW_PATCH}"
-
-                echo "📝 Updating package.json version to $NEW_VERSION"
-
-                # 更新 package.json 版本号
-                bun pm version $NEW_VERSION
-
-                # 配置git用户信息
-                git config user.name "github-actions[bot]"
-                git config user.email "github-actions[bot]@users.noreply.github.com"
-
-                # 提交版本更新
-                git add package.json bun.lock
-                git commit -m "chore: bump version to $NEW_VERSION"
-                git remote set-url origin https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/${{ github.repository }}.git
-                git push origin $BRANCH_NAME
-
-                # 获取新的 commit ID
-                COMMIT_SHORT=$(git rev-parse --short HEAD)
-                TAG_NAME="v${NEW_VERSION}-${COMMIT_SHORT}"
-
-                echo "🚀 New tag with updated version: $TAG_NAME"
-                echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
-              else
-                TAG_NAME="v${VERSION}-${COMMIT_SHORT}"
-                echo "⚠️ Fallback: creating tag with commit ID: $TAG_NAME"
-                echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
-              fi
-            else
-              # Main 分支开发 tag 已存在则失败（不应该发生）
-              echo "⚠️ Development tag $TAG_NAME already exists, this shouldn't happen"
-              exit 1
-            fi
-          fi
-
-          # 配置git用户信息（如果前面没配置）
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
 
-          # 创建并推送tag
-          echo "Creating tag: $TAG_NAME"
-          git tag $TAG_NAME
-          git remote set-url origin https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/${{ github.repository }}.git
-          git push origin $TAG_NAME
-          echo "✅ Successfully created and pushed tag: $TAG_NAME"
+          if [ "$IS_DEV" = "true" ]; then
+            : "${AIONUI_SOURCE_COMMIT:?AIONUI_SOURCE_COMMIT is required for dev tag creation}"
+            SOURCE_SHORT="${AIONUI_SOURCE_COMMIT:0:7}"
+            VERSION=$(node -p "require('./package.json').version")
+            TAG_NAME="v${VERSION}-dev-${SOURCE_SHORT}"
+            echo "🔧 Development release: $TAG_NAME"
+          else
+            : "${RELEASE_TAG:?release tag is required}"
+            TAG_NAME="$RELEASE_TAG"
+            echo "🚀 Stable release: $TAG_NAME"
+          fi
+
+          REMOTE_TAG_SHA="$(git ls-remote --tags origin "refs/tags/${TAG_NAME}" "refs/tags/${TAG_NAME}^{}" | awk -v tag="refs/tags/${TAG_NAME}" '$2 == tag "^{}" { peeled = $1 } $2 == tag { base = $1 } END { print peeled ? peeled : base }')"
+
+          if [ -n "$REMOTE_TAG_SHA" ]; then
+            if [ "$REMOTE_TAG_SHA" != "$HEAD_SHA" ]; then
+              echo "::error::Tag $TAG_NAME already exists at $REMOTE_TAG_SHA, expected $HEAD_SHA"
+              exit 1
+            fi
+            echo "Tag $TAG_NAME already exists at current commit; reusing it."
+          else
+            echo "Creating tag: $TAG_NAME"
+            git tag "$TAG_NAME"
+            git push origin "refs/tags/$TAG_NAME"
+            echo "✅ Successfully created and pushed tag: $TAG_NAME"
+          fi
+
+          echo "tag_name=$TAG_NAME" >> "$GITHUB_OUTPUT"
+          echo "is_dev=$IS_DEV" >> "$GITHUB_OUTPUT"
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
@@ -286,11 +351,10 @@ jobs:
   release:
     name: Create Release
     runs-on: ubuntu-latest
-    needs: [build-pipeline, create-tag, pack-web-cli]
-    # Tag 推送时 create-tag 会被跳过，所以需要检查两种情况（排除 -dev- tag 避免重复）
-    if: always() && needs.build-pipeline.result == 'success' && needs.pack-web-cli.result == 'success' && (needs.create-tag.result == 'success' || (startsWith(github.ref, 'refs/tags/') && !contains(github.ref, '-dev-')))
+    needs: [resolve-trigger, build-pipeline, prepare-release-ref, pack-web-cli]
+    if: always() && needs.resolve-trigger.outputs.should_build == 'true' && needs.build-pipeline.result == 'success' && needs.pack-web-cli.result == 'success' && needs.prepare-release-ref.result == 'success'
     # main 分支开发版本使用 dev-release 环境，正式 tag 使用 release 环境
-    environment: ${{ needs.create-tag.outputs.is_dev == 'true' && 'dev-release' || 'release' }}
+    environment: ${{ needs.prepare-release-ref.outputs.is_dev == 'true' && 'dev-release' || 'release' }}
 
     steps:
       - name: Checkout code
@@ -300,24 +364,20 @@ jobs:
         shell: bash
         env:
           AIONUI_SOURCE_REPO_URL: ${{ vars.AIONUI_SOURCE_REPO_URL || 'https://github.com/village-way/zhanlu-work.git' }}
-          AIONUI_SOURCE_REF: ${{ vars.AIONUI_SOURCE_REF || (startsWith(github.ref, 'refs/tags/') && 'main' || github.ref_name) }}
+          AIONUI_SOURCE_REF: ${{ needs.resolve-trigger.outputs.source_ref }}
           AIONUI_SOURCE_TOKEN: ${{ secrets.GH_TOKEN }}
         run: bash scripts/fetch-private-source.sh
 
       - name: Get version for release
         id: version
         run: |
-          # 判断触发来源：正式 tag 推送 or main 分支开发版本
-          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
-            # 正式 Tag 推送触发（-dev- tag 已被排除，不会到达这里）
-            TAG_NAME="${GITHUB_REF#refs/tags/}"
-            IS_DEV="false"
-            echo "🚀 Creating stable release from tag: $TAG_NAME"
-          else
-            # main 分支触发，使用 create-tag job 的输出
-            TAG_NAME="${{ needs.create-tag.outputs.tag_name }}"
-            IS_DEV="${{ needs.create-tag.outputs.is_dev }}"
+          TAG_NAME="${{ needs.prepare-release-ref.outputs.tag_name }}"
+          IS_DEV="${{ needs.prepare-release-ref.outputs.is_dev }}"
+
+          if [ "$IS_DEV" = "true" ]; then
             echo "🔧 Creating development release: $TAG_NAME"
+          else
+            echo "🚀 Creating stable release: $TAG_NAME"
           fi
 
           echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
